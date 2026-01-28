@@ -1,54 +1,130 @@
-# WebP Codec
+# PendoWebP
 
+Pendo's internal fork of Google's libwebp with namespaced symbols to prevent dependency conflicts.
+
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.6.0--pendo-green.svg)](https://github.com/pendo-io/iOSwebp/releases)
+[![Upstream](https://img.shields.io/badge/upstream-libwebp%20v1.6.0-blue)](https://chromium.googlesource.com/webm/libwebp/+/refs/tags/v1.6.0)
+
+## What is this?
+
+Namespaced fork of [Google's libwebp](https://chromium.googlesource.com/webm/libwebp) v1.6.0 with all **107 public symbols** prefixed with `PND` to prevent dependency conflicts.
+
+### Why Fork?
+
+Allows Pendo plugins to use a stable version of libwebp while apps can use any other version (including official libwebp) without conflicts.
+
+**Example:**
+```objective-c
+// Your plugin using PendoWebP
+PNDWebPEncodeRGBA(...)  // ← Namespaced
+
+// App using official libwebp  
+WebPEncodeRGBA(...)        // ← Original
+
+// ✅ Both coexist! No conflicts!
 ```
-      __   __  ____  ____  ____
-     /  \\/  \/  _ \/  _ )/  _ \
-     \       /   __/  _  \   __/
-      \__\__/\____/\_____/__/ ____  ___
-            / _/ /    \    \ /  _ \/ _/
-           /  \_/   / /   \ \   __/  \__
-           \____/____/\_____/_____/____/v1.6.0
+
+## Installation
+
+### 1. Add to Podfile
+
+```ruby
+pod 'PendoWebP', :git => 'https://github.com/pendo-io/iOSwebp.git', :tag => 'v1.6.0-pendo'
 ```
 
-WebP codec is a library to encode and decode images in WebP format. This package
-contains the library that can be used in other programs to add WebP support, as
-well as the command line tools 'cwebp' and 'dwebp' to compress and decompress
-images respectively.
+### 2. Add Required Hook
 
-See https://developers.google.com/speed/webp for details on the image format.
+**⚠️ CRITICAL:** See [INSTALLATION.md](INSTALLATION.md) for the required `post_install` hook.
 
-The latest source tree is available at
-https://chromium.googlesource.com/webm/libwebp
+### 3. Install
 
-It is released under the same license as the WebM project. See
-https://www.webmproject.org/license/software/ or the "COPYING" file for details.
-An additional intellectual property rights grant can be found in the file
-PATENTS.
+```bash
+pod install
+```
 
-## Building
+## Usage
 
-See the [building documentation](doc/building.md).
+### 📖 Complete Guides
 
-## Encoding and Decoding Tools
+- **[Objective-C Usage Guide](USAGE_OBJC.md)** - Complete examples for Objective-C
+- **[Swift & SwiftUI Usage Guide](USAGE_SWIFT.md)** - Modern Swift and SwiftUI examples
 
-The examples/ directory contains tools to encode and decode images and
-animations, view information about WebP images, and more. See the
-[tools documentation](doc/tools.md).
+### Quick Examples
 
-## APIs
+**Objective-C:**
+```objective-c
+#import <PendoWebP/encode.h>
 
-See the [APIs documentation](doc/api.md), and API usage examples in the
-`examples/` directory.
+uint8_t *output = NULL;
+size_t size = PNDWebPEncodeRGBA(
+    pixels, 
+    width, 
+    height, 
+    stride, 
+    85.0f,  // quality 0-100
+    &output
+);
 
-## Bugs
+NSData *webpData = [NSData dataWithBytes:output length:size];
+PNDWebPFree(output);  // Always free!
+```
 
-Please report all bugs to the [issue tracker](https://issues.webmproject.org).
-For security reports, select 'Security report' from the Template dropdown.
+**Swift:**
+```swift
+import PendoWebP
 
-Patches welcome! See [how to contribute](CONTRIBUTING.md).
+// Using the wrapper (see USAGE_SWIFT.md)
+let webpData = PendoWebPEncoder.encode(image, quality: 0.85)
 
-## Discuss
+// Or with UIImage extension
+let webpData = myImage.webPData(quality: 0.85)
+```
 
-Email: webp-discuss@webmproject.org
+## Features
 
-Web: https://groups.google.com/a/webmproject.org/group/webp-discuss
+- ✅ **Zero Conflicts** - All symbols prefixed with `PND`
+- ✅ **Drop-in Replacement** - Same API as libwebp, just add prefix
+- ✅ **Production Ready** - Based on stable libwebp 1.6.0
+- ✅ **Well Documented** - Complete guides for Objective-C and Swift
+- ✅ **BSD Licensed** - Same as original libwebp
+
+## Symbol Mapping
+
+All 107 public functions are prefixed:
+
+```c
+// Original              // PendoWebP
+WebPEncodeRGBA()    →   PNDWebPEncodeRGBA()
+WebPFree()          →   PNDWebPFree()
+WebPGetInfo()       →   PNDWebPGetInfo()
+// ... etc
+```
+
+See [RENAMED_SYMBOLS.txt](RENAMED_SYMBOLS.txt) for the complete list.
+
+## Documentation
+
+- 📖 [INSTALLATION.md](INSTALLATION.md) - Installation with required Podfile hook
+- 📖 [USAGE_OBJC.md](USAGE_OBJC.md) - Objective-C examples and API reference
+- 📖 [USAGE_SWIFT.md](USAGE_SWIFT.md) - Swift and SwiftUI examples
+- 📖 [RENAMED_SYMBOLS.txt](RENAMED_SYMBOLS.txt) - Complete symbol mapping
+
+## Version
+
+**1.6.0-pendo** - Based on libwebp 1.6.0
+
+### Changelog
+
+- **v1.6.0-pendo** - Updated to libwebp 1.6.0 (security fixes, performance improvements)
+- **v1.3.2-pendo** - Initial release based on libwebp 1.3.2
+
+## License
+
+BSD 3-Clause License (same as original libwebp)
+
+**Copyright:**
+- © 2010 Google Inc. (original libwebp)
+- © 2026 Pendo.io Inc. (namespaced fork)
+
+See [LICENSE](LICENSE) and [COPYING](COPYING) for details.
