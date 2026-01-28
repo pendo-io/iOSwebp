@@ -280,7 +280,7 @@ static int Reset(WebPWorker* const worker) {
   if (worker->status < OK) {
 #ifdef WEBP_USE_THREAD
     WebPWorkerImpl* const impl =
-        (WebPWorkerImpl*)WebPSafeCalloc(1, sizeof(WebPWorkerImpl));
+        (WebPWorkerImpl*)PNDWebPSafeCalloc(1, sizeof(WebPWorkerImpl));
     worker->impl = (void*)impl;
     if (worker->impl == NULL) {
       return 0;

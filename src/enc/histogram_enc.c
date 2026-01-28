@@ -122,7 +122,7 @@ void VP8LHistogramInit(VP8LHistogram* const h, int palette_code_bits,
 VP8LHistogram* VP8LAllocateHistogram(int cache_bits) {
   VP8LHistogram* histo = NULL;
   const int total_size = GetHistogramSize(cache_bits);
-  uint8_t* const memory = (uint8_t*)WebPSafeMalloc(total_size, sizeof(*memory));
+  uint8_t* const memory = (uint8_t*)PNDWebPSafeMalloc(total_size, sizeof(*memory));
   if (memory == NULL) return NULL;
   histo = (VP8LHistogram*)memory;
   // 'literal' won't necessary be aligned.
@@ -158,7 +158,7 @@ VP8LHistogramSet* VP8LAllocateHistogramSet(int size, int cache_bits) {
   int i;
   VP8LHistogramSet* set;
   const size_t total_size = HistogramSetTotalSize(size, cache_bits);
-  uint8_t* memory = (uint8_t*)WebPSafeMalloc(total_size, sizeof(*memory));
+  uint8_t* memory = (uint8_t*)PNDWebPSafeMalloc(total_size, sizeof(*memory));
   if (memory == NULL) return NULL;
 
   set = (VP8LHistogramSet*)memory;
@@ -797,7 +797,7 @@ static int HistoQueueInit(HistoQueue* const histo_queue, const int max_size) {
   histo_queue->max_size = max_size;
   // We allocate max_size + 1 because the last element at index "size" is
   // used as temporary data (and it could be up to max_size).
-  histo_queue->queue = (HistogramPair*)WebPSafeMalloc(
+  histo_queue->queue = (HistogramPair*)PNDWebPSafeMalloc(
       histo_queue->max_size + 1, sizeof(*histo_queue->queue));
   return histo_queue->queue != NULL;
 }

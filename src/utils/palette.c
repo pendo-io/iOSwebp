@@ -259,7 +259,7 @@ static int CoOccurrenceBuild(const WebPPicture* const pic,
   uint32_t prev_idx = 0u;
   uint32_t idx_map[MAX_PALETTE_SIZE] = {0};
   uint32_t palette_sorted[MAX_PALETTE_SIZE];
-  lines = (uint32_t*)WebPSafeMalloc(2 * pic->width, sizeof(*lines));
+  lines = (uint32_t*)PNDWebPSafeMalloc(2 * pic->width, sizeof(*lines));
   if (lines == NULL) {
     return 0;
   }
@@ -315,7 +315,7 @@ static int PaletteSortModifiedZeng(const WebPPicture* const pic,
   if (num_colors <= 1) return 1;
   // Build the co-occurrence matrix.
   cooccurrence =
-      (uint32_t*)WebPSafeCalloc(num_colors * num_colors, sizeof(*cooccurrence));
+      (uint32_t*)PNDWebPSafeCalloc(num_colors * num_colors, sizeof(*cooccurrence));
   if (cooccurrence == NULL) {
     return 0;
   }

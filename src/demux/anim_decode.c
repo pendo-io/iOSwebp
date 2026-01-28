@@ -86,7 +86,7 @@ WEBP_NODISCARD static int ApplyDecoderOptions(
   dec->blend_func = (mode == MODE_RGBA || mode == MODE_BGRA)
                         ? &BlendPixelRowNonPremult
                         : &BlendPixelRowPremult;
-  if (!WebPInitDecoderConfig(config)) {
+  if (!PNDWebPInitDecoderConfig(config)) {
     return 0;
   }
   config->output.colorspace = mode;
@@ -109,13 +109,13 @@ WebPAnimDecoder* WebPAnimDecoderNewInternal(
 
   // Validate the bitstream before doing expensive allocations. The demuxer may
   // be more tolerant than the decoder.
-  if (WebPGetFeatures(webp_data->bytes, webp_data->size, &features) !=
+  if (PNDWebPGetFeatures(webp_data->bytes, webp_data->size, &features) !=
       VP8_STATUS_OK) {
     return NULL;
   }
 
   // Note: calloc() so that the pointer members are initialized to NULL.
-  dec = (WebPAnimDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec));
+  dec = (WebPAnimDecoder*)PNDWebPSafeCalloc(1ULL, sizeof(*dec));
   if (dec == NULL) goto Error;
 
   if (dec_options != NULL) {
@@ -125,20 +125,20 @@ WebPAnimDecoder* WebPAnimDecoderNewInternal(
   }
   if (!ApplyDecoderOptions(&options, dec)) goto Error;
 
-  dec->demux = WebPDemux(webp_data);
+  dec->demux = PNDWebPDemux(webp_data);
   if (dec->demux == NULL) goto Error;
 
-  dec->info.canvas_width = WebPDemuxGetI(dec->demux, WEBP_FF_CANVAS_WIDTH);
-  dec->info.canvas_height = WebPDemuxGetI(dec->demux, WEBP_FF_CANVAS_HEIGHT);
-  dec->info.loop_count = WebPDemuxGetI(dec->demux, WEBP_FF_LOOP_COUNT);
-  dec->info.bgcolor = WebPDemuxGetI(dec->demux, WEBP_FF_BACKGROUND_COLOR);
-  dec->info.frame_count = WebPDemuxGetI(dec->demux, WEBP_FF_FRAME_COUNT);
+  dec->info.canvas_width = PNDWebPDemuxGetI(dec->demux, WEBP_FF_CANVAS_WIDTH);
+  dec->info.canvas_height = PNDWebPDemuxGetI(dec->demux, WEBP_FF_CANVAS_HEIGHT);
+  dec->info.loop_count = PNDWebPDemuxGetI(dec->demux, WEBP_FF_LOOP_COUNT);
+  dec->info.bgcolor = PNDWebPDemuxGetI(dec->demux, WEBP_FF_BACKGROUND_COLOR);
+  dec->info.frame_count = PNDWebPDemuxGetI(dec->demux, WEBP_FF_FRAME_COUNT);
 
   // Note: calloc() because we fill frame with zeroes as well.
-  dec->curr_frame = (uint8_t*)WebPSafeCalloc(
+  dec->curr_frame = (uint8_t*)PNDWebPSafeCalloc(
       dec->info.canvas_width * NUM_CHANNELS, dec->info.canvas_height);
   if (dec->curr_frame == NULL) goto Error;
-  dec->prev_frame_disposed = (uint8_t*)WebPSafeCalloc(
+  dec->prev_frame_disposed = (uint8_t*)PNDWebPSafeCalloc(
       dec->info.canvas_width * NUM_CHANNELS, dec->info.canvas_height);
   if (dec->prev_frame_disposed == NULL) goto Error;
 
@@ -345,7 +345,7 @@ int WebPAnimDecoderGetNext(WebPAnimDecoder* dec,
   blend_row = dec->blend_func;
 
   // Get compressed frame.
-  if (!WebPDemuxGetFrame(dec->demux, dec->next_frame, &iter)) {
+  if (!PNDWebPDemuxGetFrame(dec->demux, dec->next_frame, &iter)) {
     return 0;
   }
   timestamp = dec->prev_frame_timestamp + iter.duration;
@@ -379,7 +379,7 @@ int WebPAnimDecoderGetNext(WebPAnimDecoder* dec,
     buf->size = (size_t)size;
     buf->rgba = dec->curr_frame + out_offset;
 
-    if (WebPDecode(in, in_size, config) != VP8_STATUS_OK) {
+    if (PNDWebPDecode(in, in_size, config) != VP8_STATUS_OK) {
       goto Error;
     }
   }
@@ -427,7 +427,7 @@ int WebPAnimDecoderGetNext(WebPAnimDecoder* dec,
 
   // Update info of the previous frame and dispose it for the next iteration.
   dec->prev_frame_timestamp = timestamp;
-  WebPDemuxReleaseIterator(&dec->prev_iter);
+  PNDWebPDemuxReleaseIterator(&dec->prev_iter);
   dec->prev_iter = iter;
   dec->prev_frame_was_keyframe = is_key_frame;
   if (!CopyCanvas(dec->curr_frame, dec->prev_frame_disposed, width, height)) {
@@ -446,7 +446,7 @@ int WebPAnimDecoderGetNext(WebPAnimDecoder* dec,
   return 1;
 
  Error:
-  WebPDemuxReleaseIterator(&iter);
+  PNDWebPDemuxReleaseIterator(&iter);
   return 0;
 }
 
@@ -458,7 +458,7 @@ int WebPAnimDecoderHasMoreFrames(const WebPAnimDecoder* dec) {
 void WebPAnimDecoderReset(WebPAnimDecoder* dec) {
   if (dec != NULL) {
     dec->prev_frame_timestamp = 0;
-    WebPDemuxReleaseIterator(&dec->prev_iter);
+    PNDWebPDemuxReleaseIterator(&dec->prev_iter);
     memset(&dec->prev_iter, 0, sizeof(dec->prev_iter));
     dec->prev_frame_was_keyframe = 0;
     dec->next_frame = 1;
@@ -472,8 +472,8 @@ const WebPDemuxer* WebPAnimDecoderGetDemuxer(const WebPAnimDecoder* dec) {
 
 void WebPAnimDecoderDelete(WebPAnimDecoder* dec) {
   if (dec != NULL) {
-    WebPDemuxReleaseIterator(&dec->prev_iter);
-    WebPDemuxDelete(dec->demux);
+    PNDWebPDemuxReleaseIterator(&dec->prev_iter);
+    PNDWebPDemuxDelete(dec->demux);
     WebPSafeFree(dec->curr_frame);
     WebPSafeFree(dec->prev_frame_disposed);
     WebPSafeFree(dec);

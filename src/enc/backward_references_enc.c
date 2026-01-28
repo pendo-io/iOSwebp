@@ -154,7 +154,7 @@ static PixOrCopyBlock* BackwardRefsNewBlock(VP8LBackwardRefs* const refs) {
   if (b == NULL) {   // allocate new memory chunk
     const size_t total_size =
         sizeof(*b) + refs->block_size * sizeof(*b->start);
-    b = (PixOrCopyBlock*)WebPSafeMalloc(1ULL, total_size);
+    b = (PixOrCopyBlock*)PNDWebPSafeMalloc(1ULL, total_size);
     if (b == NULL) {
       refs->error |= 1;
       return NULL;
@@ -207,7 +207,7 @@ int VP8LHashChainInit(VP8LHashChain* const p, int size) {
   assert(p->offset_length == NULL);
   assert(size > 0);
   p->offset_length =
-      (uint32_t*)WebPSafeMalloc(size, sizeof(*p->offset_length));
+      (uint32_t*)PNDWebPSafeMalloc(size, sizeof(*p->offset_length));
   if (p->offset_length == NULL) return 0;
   p->size = size;
 
@@ -280,7 +280,7 @@ int VP8LHashChainFill(VP8LHashChain* const p, int quality,
   }
 
   hash_to_first_index =
-      (int32_t*)WebPSafeMalloc(HASH_SIZE, sizeof(*hash_to_first_index));
+      (int32_t*)PNDWebPSafeMalloc(HASH_SIZE, sizeof(*hash_to_first_index));
   if (hash_to_first_index == NULL) {
     return WebPEncodingSetError(pic, VP8_ENC_ERROR_OUT_OF_MEMORY);
   }
@@ -596,7 +596,7 @@ static int BackwardReferencesLz77Box(int xsize, int ysize,
   int window_offsets_size = 0;
   int window_offsets_new_size = 0;
   uint16_t* const counts_ini =
-      (uint16_t*)WebPSafeMalloc(xsize * ysize, sizeof(*counts_ini));
+      (uint16_t*)PNDWebPSafeMalloc(xsize * ysize, sizeof(*counts_ini));
   int best_offset_prev = -1, best_length_prev = -1;
   if (counts_ini == NULL) return 0;
 

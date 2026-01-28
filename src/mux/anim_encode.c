@@ -194,7 +194,7 @@ int WebPAnimEncoderOptionsInitInternal(WebPAnimEncoderOptions* enc_options,
 }
 
 // This value is used to match a later call to WebPReplaceTransparentPixels(),
-// making it a no-op for lossless (see WebPEncode()).
+// making it a no-op for lossless (see PNDWebPEncode()).
 #define TRANSPARENT_COLOR   0x00000000
 
 static void ClearRectangle(WebPPicture* const picture,
@@ -250,7 +250,7 @@ WebPAnimEncoder* WebPAnimEncoderNewInternal(
     return NULL;
   }
 
-  enc = (WebPAnimEncoder*)WebPSafeCalloc(1, sizeof(*enc));
+  enc = (WebPAnimEncoder*)PNDWebPSafeCalloc(1, sizeof(*enc));
   if (enc == NULL) return NULL;
   MarkNoError(enc);
 
@@ -265,17 +265,17 @@ WebPAnimEncoder* WebPAnimEncoderNewInternal(
   }
 
   // Canvas buffers.
-  if (!WebPPictureInit(&enc->curr_canvas_copy) ||
-      !WebPPictureInit(&enc->prev_canvas) ||
-      !WebPPictureInit(&enc->prev_canvas_disposed)) {
+  if (!PNDWebPPictureInit(&enc->curr_canvas_copy) ||
+      !PNDWebPPictureInit(&enc->prev_canvas) ||
+      !PNDWebPPictureInit(&enc->prev_canvas_disposed)) {
     goto Err;
   }
   enc->curr_canvas_copy.width = width;
   enc->curr_canvas_copy.height = height;
   enc->curr_canvas_copy.use_argb = 1;
-  if (!WebPPictureAlloc(&enc->curr_canvas_copy) ||
-      !WebPPictureCopy(&enc->curr_canvas_copy, &enc->prev_canvas) ||
-      !WebPPictureCopy(&enc->curr_canvas_copy, &enc->prev_canvas_disposed)) {
+  if (!PNDWebPPictureAlloc(&enc->curr_canvas_copy) ||
+      !PNDWebPPictureCopy(&enc->curr_canvas_copy, &enc->prev_canvas) ||
+      !PNDWebPPictureCopy(&enc->curr_canvas_copy, &enc->prev_canvas_disposed)) {
     goto Err;
   }
   WebPUtilClearPic(&enc->prev_canvas, NULL);
@@ -289,10 +289,10 @@ WebPAnimEncoder* WebPAnimEncoderNewInternal(
   // enc->size will be 1. So we handle that special case below.
   if (enc->size < 2) enc->size = 2;
   enc->encoded_frames =
-      (EncodedFrame*)WebPSafeCalloc(enc->size, sizeof(*enc->encoded_frames));
+      (EncodedFrame*)PNDWebPSafeCalloc(enc->size, sizeof(*enc->encoded_frames));
   if (enc->encoded_frames == NULL) goto Err;
 
-  enc->mux = WebPMuxNew();
+  enc->mux = PNDWebPMuxNew();
   if (enc->mux == NULL) goto Err;
 
   enc->count_since_key_frame = 0;
@@ -320,9 +320,9 @@ static void FrameRelease(EncodedFrame* const encoded_frame) {
 
 void WebPAnimEncoderDelete(WebPAnimEncoder* enc) {
   if (enc != NULL) {
-    WebPPictureFree(&enc->curr_canvas_copy);
-    WebPPictureFree(&enc->prev_canvas);
-    WebPPictureFree(&enc->prev_canvas_disposed);
+    PNDWebPPictureFree(&enc->curr_canvas_copy);
+    PNDWebPPictureFree(&enc->prev_canvas);
+    PNDWebPPictureFree(&enc->prev_canvas_disposed);
     if (enc->encoded_frames != NULL) {
       size_t i;
       for (i = 0; i < enc->size; ++i) {
@@ -330,7 +330,7 @@ void WebPAnimEncoderDelete(WebPAnimEncoder* enc) {
       }
       WebPSafeFree(enc->encoded_frames);
     }
-    WebPMuxDelete(enc->mux);
+    PNDWebPMuxDelete(enc->mux);
     WebPSafeFree(enc);
   }
 }
@@ -521,16 +521,16 @@ static int SubFrameParamsInit(SubFrameParams* const params,
                               int should_try, int empty_rect_allowed) {
   params->should_try = should_try;
   params->empty_rect_allowed = empty_rect_allowed;
-  if (!WebPPictureInit(&params->sub_frame_ll) ||
-      !WebPPictureInit(&params->sub_frame_lossy)) {
+  if (!PNDWebPPictureInit(&params->sub_frame_ll) ||
+      !PNDWebPPictureInit(&params->sub_frame_lossy)) {
     return 0;
   }
   return 1;
 }
 
 static void SubFrameParamsFree(SubFrameParams* const params) {
-  WebPPictureFree(&params->sub_frame_ll);
-  WebPPictureFree(&params->sub_frame_lossy);
+  PNDWebPPictureFree(&params->sub_frame_ll);
+  PNDWebPPictureFree(&params->sub_frame_lossy);
 }
 
 // Given previous and current canvas, picks the optimal rectangle for the
@@ -561,7 +561,7 @@ static int GetSubRect(const WebPPicture* const prev_canvas,
   }
 
   SnapToEvenOffsets(rect);
-  return WebPPictureView(curr_canvas, rect->x_offset, rect->y_offset,
+  return PNDWebPPictureView(curr_canvas, rect->x_offset, rect->y_offset,
                          rect->width, rect->height, sub_frame);
 }
 
@@ -767,11 +767,11 @@ static int FlattenSimilarBlocks(const WebPPicture* const src,
 }
 
 static int EncodeFrame(const WebPConfig* const config, WebPPicture* const pic,
-                       WebPMemoryWriter* const memory) {
+                       PNDWebPMemoryWriter* const memory) {
   pic->use_argb = 1;
-  pic->writer = WebPMemoryWrite;
+  pic->writer = PNDWebPMemoryWrite;
   pic->custom_ptr = memory;
-  if (!WebPEncode(config, pic)) {
+  if (!PNDWebPEncode(config, pic)) {
     return 0;
   }
   return 1;
@@ -779,7 +779,7 @@ static int EncodeFrame(const WebPConfig* const config, WebPPicture* const pic,
 
 // Struct representing a candidate encoded frame including its metadata.
 typedef struct {
-  WebPMemoryWriter  mem;
+  PNDWebPMemoryWriter  mem;
   WebPMuxFrameInfo  info;
   FrameRectangle    rect;
   int               evaluate;  // True if this candidate should be evaluated.
@@ -807,7 +807,7 @@ static WebPEncodingError EncodeCandidate(WebPPicture* const sub_frame,
   candidate->info.duration = 0;  // Set in next call to WebPAnimEncoderAdd().
 
   // Encode picture.
-  WebPMemoryWriterInit(&candidate->mem);
+  PNDWebPMemoryWriterInit(&candidate->mem);
 
   if (!config.lossless && use_blending) {
     // Disable filtering to avoid blockiness in reconstructed frames at the
@@ -824,7 +824,7 @@ static WebPEncodingError EncodeCandidate(WebPPicture* const sub_frame,
   return error_code;
 
  Err:
-  WebPMemoryWriterClear(&candidate->mem);
+  PNDWebPMemoryWriterClear(&candidate->mem);
   return error_code;
 }
 
@@ -885,7 +885,7 @@ static WebPEncodingError GenerateCandidates(
     evaluate_ll = 1;
     evaluate_lossy = 1;
   } else {  // Use a heuristic for trying lossless and/or lossy compression.
-    const int num_colors = WebPGetColorPalette(&params->sub_frame_ll, NULL);
+    const int num_colors = PNDWebPGetColorPalette(&params->sub_frame_ll, NULL);
     evaluate_ll = (num_colors < MAX_COLORS_LOSSLESS);
     evaluate_lossy = (num_colors >= MIN_COLORS_LOSSY);
   }
@@ -920,7 +920,7 @@ static WebPEncodingError GenerateCandidates(
 #undef MIN_COLORS_LOSSY
 #undef MAX_COLORS_LOSSLESS
 
-static void GetEncodedData(const WebPMemoryWriter* const memory,
+static void GetEncodedData(const PNDWebPMemoryWriter* const memory,
                            WebPData* const encoded_data) {
   encoded_data->bytes = memory->mem;
   encoded_data->size  = memory->size;
@@ -1047,7 +1047,7 @@ static void PickBestCandidate(WebPAnimEncoder* const enc,
         }
         enc->prev_rect = candidates[i].rect;  // save for next frame.
       } else {
-        WebPMemoryWriterClear(&candidates[i].mem);
+        PNDWebPMemoryWriterClear(&candidates[i].mem);
         candidates[i].evaluate = 0;
       }
     }
@@ -1179,7 +1179,7 @@ static WebPEncodingError SetFrame(WebPAnimEncoder* const enc,
  Err:
   for (i = 0; i < CANDIDATE_COUNT; ++i) {
     if (candidates[i].evaluate) {
-      WebPMemoryWriterClear(&candidates[i].mem);
+      PNDWebPMemoryWriterClear(&candidates[i].mem);
     }
   }
 
@@ -1304,7 +1304,7 @@ static int FlushFrames(WebPAnimEncoder* const enc) {
     const WebPMuxFrameInfo* const info =
         curr->is_key_frame ? &curr->key_frame : &curr->sub_frame;
     assert(enc->mux != NULL);
-    err = WebPMuxPushFrame(enc->mux, info, 1);
+    err = PNDWebPMuxPushFrame(enc->mux, info, 1);
     if (err != WEBP_MUX_OK) {
       MarkError2(enc, "ERROR adding frame. WebPMuxError", err);
       return 0;
@@ -1389,20 +1389,20 @@ int WebPAnimEncoderAdd(WebPAnimEncoder* enc, WebPPicture* frame, int timestamp,
       fprintf(stderr, "WARNING: Converting frame from YUV(A) to ARGB format; "
               "this incurs a small loss.\n");
     }
-    if (!WebPPictureYUVAToARGB(frame)) {
+    if (!PNDWebPPictureYUVAToARGB(frame)) {
       MarkError(enc, "ERROR converting frame from YUV(A) to ARGB");
       return 0;
     }
   }
 
   if (encoder_config != NULL) {
-    if (!WebPValidateConfig(encoder_config)) {
+    if (!PNDWebPValidateConfig(encoder_config)) {
       MarkError(enc, "ERROR adding frame: Invalid WebPConfig");
       return 0;
     }
     config = *encoder_config;
   } else {
-    if (!WebPConfigInit(&config)) {
+    if (!PNDWebPConfigInit(&config)) {
       MarkError(enc, "Cannot Init config");
       return 0;
     }
@@ -1431,15 +1431,15 @@ WEBP_NODISCARD static int DecodeFrameOntoCanvas(
   const WebPData* const image = &frame->bitstream;
   WebPPicture sub_image;
   WebPDecoderConfig config;
-  if (!WebPInitDecoderConfig(&config)) {
+  if (!PNDWebPInitDecoderConfig(&config)) {
     return 0;
   }
   WebPUtilClearPic(canvas, NULL);
-  if (WebPGetFeatures(image->bytes, image->size, &config.input) !=
+  if (PNDWebPGetFeatures(image->bytes, image->size, &config.input) !=
       VP8_STATUS_OK) {
     return 0;
   }
-  if (!WebPPictureView(canvas, frame->x_offset, frame->y_offset,
+  if (!PNDWebPPictureView(canvas, frame->x_offset, frame->y_offset,
                        config.input.width, config.input.height, &sub_image)) {
     return 0;
   }
@@ -1449,7 +1449,7 @@ WEBP_NODISCARD static int DecodeFrameOntoCanvas(
   config.output.u.RGBA.stride = sub_image.argb_stride * 4;
   config.output.u.RGBA.size = config.output.u.RGBA.stride * sub_image.height;
 
-  if (WebPDecode(image->bytes, image->size, &config) != VP8_STATUS_OK) {
+  if (PNDWebPDecode(image->bytes, image->size, &config) != VP8_STATUS_OK) {
     return 0;
   }
   return 1;
@@ -1459,9 +1459,9 @@ static int FrameToFullCanvas(WebPAnimEncoder* const enc,
                              const WebPMuxFrameInfo* const frame,
                              WebPData* const full_image) {
   WebPPicture* const canvas_buf = &enc->curr_canvas_copy;
-  WebPMemoryWriter mem1, mem2;
-  WebPMemoryWriterInit(&mem1);
-  WebPMemoryWriterInit(&mem2);
+  PNDWebPMemoryWriter mem1, mem2;
+  PNDWebPMemoryWriterInit(&mem1);
+  PNDWebPMemoryWriterInit(&mem2);
 
   if (!DecodeFrameOntoCanvas(frame, canvas_buf)) goto Err;
   if (!EncodeFrame(&enc->last_config, canvas_buf, &mem1)) goto Err;
@@ -1471,16 +1471,16 @@ static int FrameToFullCanvas(WebPAnimEncoder* const enc,
     if (!EncodeFrame(&enc->last_config_reversed, canvas_buf, &mem2)) goto Err;
     if (mem2.size < mem1.size) {
       GetEncodedData(&mem2, full_image);
-      WebPMemoryWriterClear(&mem1);
+      PNDWebPMemoryWriterClear(&mem1);
     } else {
-      WebPMemoryWriterClear(&mem2);
+      PNDWebPMemoryWriterClear(&mem2);
     }
   }
   return 1;
 
  Err:
-  WebPMemoryWriterClear(&mem1);
-  WebPMemoryWriterClear(&mem2);
+  PNDWebPMemoryWriterClear(&mem1);
+  PNDWebPMemoryWriterClear(&mem2);
   return 0;
 }
 
@@ -1494,25 +1494,25 @@ static WebPMuxError OptimizeSingleFrame(WebPAnimEncoder* const enc,
   WebPMuxFrameInfo frame;
   WebPData full_image;
   WebPData webp_data2;
-  WebPMux* const mux = WebPMuxCreate(webp_data, 0);
+  WebPMux* const mux = PNDWebPMuxCreate(webp_data, 0);
   if (mux == NULL) return WEBP_MUX_BAD_DATA;
   assert(enc->out_frame_count == 1);
   WebPDataInit(&frame.bitstream);
   WebPDataInit(&full_image);
   WebPDataInit(&webp_data2);
 
-  err = WebPMuxGetFrame(mux, 1, &frame);
+  err = PNDWebPMuxGetFrame(mux, 1, &frame);
   if (err != WEBP_MUX_OK) goto End;
   if (frame.id != WEBP_CHUNK_ANMF) goto End;  // Non-animation: nothing to do.
-  err = WebPMuxGetCanvasSize(mux, &canvas_width, &canvas_height);
+  err = PNDWebPMuxGetCanvasSize(mux, &canvas_width, &canvas_height);
   if (err != WEBP_MUX_OK) goto End;
   if (!FrameToFullCanvas(enc, &frame, &full_image)) {
     err = WEBP_MUX_BAD_DATA;
     goto End;
   }
-  err = WebPMuxSetImage(mux, &full_image, 1);
+  err = PNDWebPMuxSetImage(mux, &full_image, 1);
   if (err != WEBP_MUX_OK) goto End;
-  err = WebPMuxAssemble(mux, &webp_data2);
+  err = PNDWebPMuxAssemble(mux, &webp_data2);
   if (err != WEBP_MUX_OK) goto End;
 
   if (webp_data2.size < webp_data->size) {  // Pick 'webp_data2' if smaller.
@@ -1524,7 +1524,7 @@ static WebPMuxError OptimizeSingleFrame(WebPAnimEncoder* const enc,
  End:
   WebPDataClear(&frame.bitstream);
   WebPDataClear(&full_image);
-  WebPMuxDelete(mux);
+  PNDWebPMuxDelete(mux);
   WebPDataClear(&webp_data2);
   return err;
 }
@@ -1566,14 +1566,14 @@ int WebPAnimEncoderAssemble(WebPAnimEncoder* enc, WebPData* webp_data) {
 
   // Set definitive canvas size.
   mux = enc->mux;
-  err = WebPMuxSetCanvasSize(mux, enc->canvas_width, enc->canvas_height);
+  err = PNDWebPMuxSetCanvasSize(mux, enc->canvas_width, enc->canvas_height);
   if (err != WEBP_MUX_OK) goto Err;
 
-  err = WebPMuxSetAnimationParams(mux, &enc->options.anim_params);
+  err = PNDWebPMuxSetAnimationParams(mux, &enc->options.anim_params);
   if (err != WEBP_MUX_OK) goto Err;
 
   // Assemble into a WebP bitstream.
-  err = WebPMuxAssemble(mux, webp_data);
+  err = PNDWebPMuxAssemble(mux, webp_data);
   if (err != WEBP_MUX_OK) goto Err;
 
   if (enc->out_frame_count == 1) {
@@ -1596,19 +1596,19 @@ WebPMuxError WebPAnimEncoderSetChunk(
     WebPAnimEncoder* enc, const char fourcc[4], const WebPData* chunk_data,
     int copy_data) {
   if (enc == NULL) return WEBP_MUX_INVALID_ARGUMENT;
-  return WebPMuxSetChunk(enc->mux, fourcc, chunk_data, copy_data);
+  return PNDWebPMuxSetChunk(enc->mux, fourcc, chunk_data, copy_data);
 }
 
 WebPMuxError WebPAnimEncoderGetChunk(
     const WebPAnimEncoder* enc, const char fourcc[4], WebPData* chunk_data) {
   if (enc == NULL) return WEBP_MUX_INVALID_ARGUMENT;
-  return WebPMuxGetChunk(enc->mux, fourcc, chunk_data);
+  return PNDWebPMuxGetChunk(enc->mux, fourcc, chunk_data);
 }
 
 WebPMuxError WebPAnimEncoderDeleteChunk(
     WebPAnimEncoder* enc, const char fourcc[4]) {
   if (enc == NULL) return WEBP_MUX_INVALID_ARGUMENT;
-  return WebPMuxDeleteChunk(enc->mux, fourcc);
+  return PNDWebPMuxDeleteChunk(enc->mux, fourcc);
 }
 
 // -----------------------------------------------------------------------------

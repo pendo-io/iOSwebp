@@ -34,7 +34,7 @@ static int DummyWriter(const uint8_t* data, size_t data_size,
   return 1;
 }
 
-int WebPPictureInitInternal(WebPPicture* picture, int version) {
+int PNDWebPPictureInitInternal(WebPPicture* picture, int version) {
   if (WEBP_ABI_IS_INCOMPATIBLE(version, WEBP_ENCODER_ABI_VERSION)) {
     return 0;   // caller/system version mismatch!
   }
@@ -94,7 +94,7 @@ int WebPPictureAllocARGB(WebPPicture* const picture) {
   WebPPictureResetBufferARGB(picture);
 
   // allocate a new buffer.
-  memory = WebPSafeMalloc(argb_size + WEBP_ALIGN_CST, sizeof(*picture->argb));
+  memory = PNDWebPSafeMalloc(argb_size + WEBP_ALIGN_CST, sizeof(*picture->argb));
   if (memory == NULL) {
     return WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
   }
@@ -136,7 +136,7 @@ int WebPPictureAllocYUVA(WebPPicture* const picture) {
     return WebPEncodingSetError(picture, VP8_ENC_ERROR_BAD_DIMENSION);
   }
   // allocate a new buffer.
-  mem = (uint8_t*)WebPSafeMalloc(total_size, sizeof(*mem));
+  mem = (uint8_t*)PNDWebPSafeMalloc(total_size, sizeof(*mem));
   if (mem == NULL) {
     return WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
   }
@@ -164,9 +164,9 @@ int WebPPictureAllocYUVA(WebPPicture* const picture) {
   return 1;
 }
 
-int WebPPictureAlloc(WebPPicture* picture) {
+int PNDWebPPictureAlloc(WebPPicture* picture) {
   if (picture != NULL) {
-    WebPPictureFree(picture);   // erase previous buffer
+    PNDWebPPictureFree(picture);   // erase previous buffer
 
     if (!picture->use_argb) {
       return WebPPictureAllocYUVA(picture);
@@ -177,7 +177,7 @@ int WebPPictureAlloc(WebPPicture* picture) {
   return 1;
 }
 
-void WebPPictureFree(WebPPicture* picture) {
+void PNDWebPPictureFree(WebPPicture* picture) {
   if (picture != NULL) {
     WebPSafeFree(picture->memory_);
     WebPSafeFree(picture->memory_argb_);
@@ -186,17 +186,17 @@ void WebPPictureFree(WebPPicture* picture) {
 }
 
 //------------------------------------------------------------------------------
-// WebPMemoryWriter: Write-to-memory
+// PNDWebPMemoryWriter: Write-to-memory
 
-void WebPMemoryWriterInit(WebPMemoryWriter* writer) {
+void PNDWebPMemoryWriterInit(PNDWebPMemoryWriter* writer) {
   writer->mem = NULL;
   writer->size = 0;
   writer->max_size = 0;
 }
 
-int WebPMemoryWrite(const uint8_t* data, size_t data_size,
+int PNDWebPMemoryWrite(const uint8_t* data, size_t data_size,
                     const WebPPicture* picture) {
-  WebPMemoryWriter* const w = (WebPMemoryWriter*)picture->custom_ptr;
+  PNDWebPMemoryWriter* const w = (PNDWebPMemoryWriter*)picture->custom_ptr;
   uint64_t next_size;
   if (w == NULL) {
     return 1;
@@ -207,7 +207,7 @@ int WebPMemoryWrite(const uint8_t* data, size_t data_size,
     uint64_t next_max_size = 2ULL * w->max_size;
     if (next_max_size < next_size) next_max_size = next_size;
     if (next_max_size < 8192ULL) next_max_size = 8192ULL;
-    new_mem = (uint8_t*)WebPSafeMalloc(next_max_size, 1);
+    new_mem = (uint8_t*)PNDWebPSafeMalloc(next_max_size, 1);
     if (new_mem == NULL) {
       return 0;
     }
@@ -216,7 +216,7 @@ int WebPMemoryWrite(const uint8_t* data, size_t data_size,
     }
     WebPSafeFree(w->mem);
     w->mem = new_mem;
-    // down-cast is ok, thanks to WebPSafeMalloc
+    // down-cast is ok, thanks to PNDWebPSafeMalloc
     w->max_size = (size_t)next_max_size;
   }
   if (data_size > 0) {
@@ -226,10 +226,10 @@ int WebPMemoryWrite(const uint8_t* data, size_t data_size,
   return 1;
 }
 
-void WebPMemoryWriterClear(WebPMemoryWriter* writer) {
+void PNDWebPMemoryWriterClear(PNDWebPMemoryWriter* writer) {
   if (writer != NULL) {
     WebPSafeFree(writer->mem);
-    WebPMemoryWriterInit(writer);
+    PNDWebPMemoryWriterInit(writer);
   }
 }
 
@@ -243,13 +243,13 @@ static size_t Encode(const uint8_t* rgba, int width, int height, int stride,
                      uint8_t** output) {
   WebPPicture pic;
   WebPConfig config;
-  WebPMemoryWriter wrt;
+  PNDWebPMemoryWriter wrt;
   int ok;
 
   if (output == NULL) return 0;
 
-  if (!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, quality_factor) ||
-      !WebPPictureInit(&pic)) {
+  if (!PNDWebPConfigPreset(&config, WEBP_PRESET_DEFAULT, quality_factor) ||
+      !PNDWebPPictureInit(&pic)) {
     return 0;  // shouldn't happen, except if system installation is broken
   }
 
@@ -257,14 +257,14 @@ static size_t Encode(const uint8_t* rgba, int width, int height, int stride,
   pic.use_argb = !!lossless;
   pic.width = width;
   pic.height = height;
-  pic.writer = WebPMemoryWrite;
+  pic.writer = PNDWebPMemoryWrite;
   pic.custom_ptr = &wrt;
-  WebPMemoryWriterInit(&wrt);
+  PNDWebPMemoryWriterInit(&wrt);
 
-  ok = import(&pic, rgba, stride) && WebPEncode(&config, &pic);
-  WebPPictureFree(&pic);
+  ok = import(&pic, rgba, stride) && PNDWebPEncode(&config, &pic);
+  PNDWebPPictureFree(&pic);
   if (!ok) {
-    WebPMemoryWriterClear(&wrt);
+    PNDWebPMemoryWriterClear(&wrt);
     *output = NULL;
     return 0;
   }
@@ -278,11 +278,11 @@ size_t NAME(const uint8_t* in, int w, int h, int bps, float q,          \
   return Encode(in, w, h, bps, IMPORTER, q, 0, out);                    \
 }
 
-ENCODE_FUNC(WebPEncodeRGB, WebPPictureImportRGB)
-ENCODE_FUNC(WebPEncodeRGBA, WebPPictureImportRGBA)
+ENCODE_FUNC(PNDWebPEncodeRGB, PNDWebPPictureImportRGB)
+ENCODE_FUNC(PNDWebPEncodeRGBA, PNDWebPPictureImportRGBA)
 #if !defined(WEBP_REDUCE_CSP)
-ENCODE_FUNC(WebPEncodeBGR, WebPPictureImportBGR)
-ENCODE_FUNC(WebPEncodeBGRA, WebPPictureImportBGRA)
+ENCODE_FUNC(PNDWebPEncodeBGR, PNDWebPPictureImportBGR)
+ENCODE_FUNC(PNDWebPEncodeBGRA, PNDWebPPictureImportBGRA)
 #endif  // WEBP_REDUCE_CSP
 
 #undef ENCODE_FUNC
@@ -293,11 +293,11 @@ size_t NAME(const uint8_t* in, int w, int h, int bps, uint8_t** out) {       \
   return Encode(in, w, h, bps, IMPORTER, LOSSLESS_DEFAULT_QUALITY, 1, out);  \
 }
 
-LOSSLESS_ENCODE_FUNC(WebPEncodeLosslessRGB, WebPPictureImportRGB)
-LOSSLESS_ENCODE_FUNC(WebPEncodeLosslessRGBA, WebPPictureImportRGBA)
+LOSSLESS_ENCODE_FUNC(PNDWebPEncodeLosslessRGB, PNDWebPPictureImportRGB)
+LOSSLESS_ENCODE_FUNC(PNDWebPEncodeLosslessRGBA, PNDWebPPictureImportRGBA)
 #if !defined(WEBP_REDUCE_CSP)
-LOSSLESS_ENCODE_FUNC(WebPEncodeLosslessBGR, WebPPictureImportBGR)
-LOSSLESS_ENCODE_FUNC(WebPEncodeLosslessBGRA, WebPPictureImportBGRA)
+LOSSLESS_ENCODE_FUNC(PNDWebPEncodeLosslessBGR, PNDWebPPictureImportBGR)
+LOSSLESS_ENCODE_FUNC(PNDWebPEncodeLosslessBGRA, PNDWebPPictureImportBGRA)
 #endif  // WEBP_REDUCE_CSP
 
 #undef LOSSLESS_ENCODE_FUNC

@@ -50,10 +50,10 @@ static WEBP_INLINE int CheckSizeOverflow(uint64_t size) {
 // somewhere (like: malloc(num_pixels * sizeof(*something))). That's why this
 // safe malloc() borrows the signature from calloc(), pointing at the dangerous
 // underlying multiply involved.
-WEBP_EXTERN void* WebPSafeMalloc(uint64_t nmemb, size_t size);
-// Note that WebPSafeCalloc() expects the second argument type to be 'size_t'
+WEBP_EXTERN void* PNDWebPSafeMalloc(uint64_t nmemb, size_t size);
+// Note that PNDWebPSafeCalloc() expects the second argument type to be 'size_t'
 // in order to favor the "calloc(num_foo, sizeof(foo))" pattern.
-WEBP_EXTERN void* WebPSafeCalloc(uint64_t nmemb, size_t size);
+WEBP_EXTERN void* PNDWebPSafeCalloc(uint64_t nmemb, size_t size);
 
 // Companion deallocation function to the above allocations.
 WEBP_EXTERN void WebPSafeFree(void* const ptr);
@@ -197,7 +197,7 @@ WEBP_EXTERN void WebPCopyPixels(const struct WebPPicture* const src,
 // Note: 'palette' is assumed to be an array already allocated with at least
 // MAX_PALETTE_SIZE elements.
 // TODO(vrabaud) remove whenever we can break the ABI.
-WEBP_EXTERN int WebPGetColorPalette(const struct WebPPicture* const pic,
+WEBP_EXTERN int PNDWebPGetColorPalette(const struct WebPPicture* const pic,
                                     uint32_t* const palette);
 
 //------------------------------------------------------------------------------

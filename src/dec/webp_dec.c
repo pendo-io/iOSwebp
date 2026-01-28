@@ -429,7 +429,7 @@ VP8StatusCode WebPParseHeaders(WebPHeaderStructure* const headers) {
                                 NULL, NULL, NULL, &has_animation,
                                 NULL, headers);
   if (status == VP8_STATUS_OK || status == VP8_STATUS_NOT_ENOUGH_DATA) {
-    // The WebPDemux API + libwebp can be used to decode individual
+    // The PNDWebPDemux API + libwebp can be used to decode individual
     // uncomposited frames or the WebPAnimDecoder can be used to fully
     // reconstruct them (see webp/demux.h).
     if (has_animation) {
@@ -557,32 +557,32 @@ WEBP_NODISCARD static uint8_t* DecodeIntoRGBABuffer(WEBP_CSP_MODE colorspace,
   return rgba;
 }
 
-uint8_t* WebPDecodeRGBInto(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeRGBInto(const uint8_t* data, size_t data_size,
                            uint8_t* output, size_t size, int stride) {
   return DecodeIntoRGBABuffer(MODE_RGB, data, data_size, output, stride, size);
 }
 
-uint8_t* WebPDecodeRGBAInto(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeRGBAInto(const uint8_t* data, size_t data_size,
                             uint8_t* output, size_t size, int stride) {
   return DecodeIntoRGBABuffer(MODE_RGBA, data, data_size, output, stride, size);
 }
 
-uint8_t* WebPDecodeARGBInto(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeARGBInto(const uint8_t* data, size_t data_size,
                             uint8_t* output, size_t size, int stride) {
   return DecodeIntoRGBABuffer(MODE_ARGB, data, data_size, output, stride, size);
 }
 
-uint8_t* WebPDecodeBGRInto(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeBGRInto(const uint8_t* data, size_t data_size,
                            uint8_t* output, size_t size, int stride) {
   return DecodeIntoRGBABuffer(MODE_BGR, data, data_size, output, stride, size);
 }
 
-uint8_t* WebPDecodeBGRAInto(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeBGRAInto(const uint8_t* data, size_t data_size,
                             uint8_t* output, size_t size, int stride) {
   return DecodeIntoRGBABuffer(MODE_BGRA, data, data_size, output, stride, size);
 }
 
-uint8_t* WebPDecodeYUVInto(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeYUVInto(const uint8_t* data, size_t data_size,
                            uint8_t* luma, size_t luma_size, int luma_stride,
                            uint8_t* u, size_t u_size, int u_stride,
                            uint8_t* v, size_t v_size, int v_stride) {
@@ -626,7 +626,7 @@ WEBP_NODISCARD static uint8_t* Decode(WEBP_CSP_MODE mode,
   output.colorspace = mode;
 
   // Retrieve (and report back) the required dimensions from bitstream.
-  if (!WebPGetInfo(data, data_size, &output.width, &output.height)) {
+  if (!PNDWebPGetInfo(data, data_size, &output.width, &output.height)) {
     return NULL;
   }
   if (width != NULL) *width = output.width;
@@ -643,32 +643,32 @@ WEBP_NODISCARD static uint8_t* Decode(WEBP_CSP_MODE mode,
   return WebPIsRGBMode(mode) ? output.u.RGBA.rgba : output.u.YUVA.y;
 }
 
-uint8_t* WebPDecodeRGB(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeRGB(const uint8_t* data, size_t data_size,
                        int* width, int* height) {
   return Decode(MODE_RGB, data, data_size, width, height, NULL);
 }
 
-uint8_t* WebPDecodeRGBA(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeRGBA(const uint8_t* data, size_t data_size,
                         int* width, int* height) {
   return Decode(MODE_RGBA, data, data_size, width, height, NULL);
 }
 
-uint8_t* WebPDecodeARGB(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeARGB(const uint8_t* data, size_t data_size,
                         int* width, int* height) {
   return Decode(MODE_ARGB, data, data_size, width, height, NULL);
 }
 
-uint8_t* WebPDecodeBGR(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeBGR(const uint8_t* data, size_t data_size,
                        int* width, int* height) {
   return Decode(MODE_BGR, data, data_size, width, height, NULL);
 }
 
-uint8_t* WebPDecodeBGRA(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeBGRA(const uint8_t* data, size_t data_size,
                         int* width, int* height) {
   return Decode(MODE_BGRA, data, data_size, width, height, NULL);
 }
 
-uint8_t* WebPDecodeYUV(const uint8_t* data, size_t data_size,
+uint8_t* PNDWebPDecodeYUV(const uint8_t* data, size_t data_size,
                        int* width, int* height, uint8_t** u, uint8_t** v,
                        int* stride, int* uv_stride) {
   // data, width and height are checked by Decode().
@@ -713,9 +713,9 @@ static VP8StatusCode GetFeatures(const uint8_t* const data, size_t data_size,
 }
 
 //------------------------------------------------------------------------------
-// WebPGetInfo()
+// PNDWebPGetInfo()
 
-int WebPGetInfo(const uint8_t* data, size_t data_size,
+int PNDWebPGetInfo(const uint8_t* data, size_t data_size,
                 int* width, int* height) {
   WebPBitstreamFeatures features;
 
@@ -736,7 +736,7 @@ int WebPGetInfo(const uint8_t* data, size_t data_size,
 //------------------------------------------------------------------------------
 // Advance decoding API
 
-int WebPInitDecoderConfigInternal(WebPDecoderConfig* config,
+int PNDWebPInitDecoderConfigInternal(WebPDecoderConfig* config,
                                   int version) {
   if (WEBP_ABI_IS_INCOMPATIBLE(version, WEBP_DECODER_ABI_VERSION)) {
     return 0;   // version mismatch
@@ -807,7 +807,7 @@ int WebPValidateDecoderConfig(const WebPDecoderConfig* config) {
   return 1;
 }
 
-VP8StatusCode WebPGetFeaturesInternal(const uint8_t* data, size_t data_size,
+VP8StatusCode PNDWebPGetFeaturesInternal(const uint8_t* data, size_t data_size,
                                       WebPBitstreamFeatures* features,
                                       int version) {
   if (WEBP_ABI_IS_INCOMPATIBLE(version, WEBP_DECODER_ABI_VERSION)) {
@@ -819,7 +819,7 @@ VP8StatusCode WebPGetFeaturesInternal(const uint8_t* data, size_t data_size,
   return GetFeatures(data, data_size, features);
 }
 
-VP8StatusCode WebPDecode(const uint8_t* data, size_t data_size,
+VP8StatusCode PNDWebPDecode(const uint8_t* data, size_t data_size,
                          WebPDecoderConfig* config) {
   WebPDecParams params;
   VP8StatusCode status;

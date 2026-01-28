@@ -60,12 +60,12 @@ static int AdjustAndCheckRectangle(const WebPPicture* const pic,
 }
 
 #if !defined(WEBP_REDUCE_SIZE)
-int WebPPictureCopy(const WebPPicture* src, WebPPicture* dst) {
+int PNDWebPPictureCopy(const WebPPicture* src, WebPPicture* dst) {
   if (src == NULL || dst == NULL) return 0;
   if (src == dst) return 1;
 
   PictureGrabSpecs(src, dst);
-  if (!WebPPictureAlloc(dst)) return 0;
+  if (!PNDWebPPictureAlloc(dst)) return 0;
 
   if (!src->use_argb) {
     WebPCopyPlane(src->y, src->y_stride,
@@ -87,7 +87,7 @@ int WebPPictureCopy(const WebPPicture* src, WebPPicture* dst) {
 }
 #endif  // !defined(WEBP_REDUCE_SIZE)
 
-int WebPPictureIsView(const WebPPicture* picture) {
+int PNDWebPPictureIsView(const WebPPicture* picture) {
   if (picture == NULL) return 0;
   if (picture->use_argb) {
     return (picture->memory_argb_ == NULL);
@@ -95,7 +95,7 @@ int WebPPictureIsView(const WebPPicture* picture) {
   return (picture->memory_ == NULL);
 }
 
-int WebPPictureView(const WebPPicture* src,
+int PNDWebPPictureView(const WebPPicture* src,
                     int left, int top, int width, int height,
                     WebPPicture* dst) {
   if (src == NULL || dst == NULL) return 0;
@@ -129,7 +129,7 @@ int WebPPictureView(const WebPPicture* src,
 //------------------------------------------------------------------------------
 // Picture cropping
 
-int WebPPictureCrop(WebPPicture* pic,
+int PNDWebPPictureCrop(WebPPicture* pic,
                     int left, int top, int width, int height) {
   WebPPicture tmp;
 
@@ -139,7 +139,7 @@ int WebPPictureCrop(WebPPicture* pic,
   PictureGrabSpecs(pic, &tmp);
   tmp.width = width;
   tmp.height = height;
-  if (!WebPPictureAlloc(&tmp)) {
+  if (!PNDWebPPictureAlloc(&tmp)) {
     return WebPEncodingSetError(pic, tmp.error_code);
   }
 
@@ -164,7 +164,7 @@ int WebPPictureCrop(WebPPicture* pic,
     WebPCopyPlane(src, pic->argb_stride * 4, (uint8_t*)tmp.argb,
                   tmp.argb_stride * 4, width * 4, height);
   }
-  WebPPictureFree(pic);
+  PNDWebPPictureFree(pic);
   *pic = tmp;
   return 1;
 }
@@ -206,7 +206,7 @@ static void AlphaMultiplyY(WebPPicture* const pic, int inverse) {
   }
 }
 
-int WebPPictureRescale(WebPPicture* picture, int width, int height) {
+int PNDWebPPictureRescale(WebPPicture* picture, int width, int height) {
   WebPPicture tmp;
   int prev_width, prev_height;
   rescaler_t* work;
@@ -222,14 +222,14 @@ int WebPPictureRescale(WebPPicture* picture, int width, int height) {
   PictureGrabSpecs(picture, &tmp);
   tmp.width = width;
   tmp.height = height;
-  if (!WebPPictureAlloc(&tmp)) {
+  if (!PNDWebPPictureAlloc(&tmp)) {
     return WebPEncodingSetError(picture, tmp.error_code);
   }
 
   if (!picture->use_argb) {
-    work = (rescaler_t*)WebPSafeMalloc(2ULL * width, sizeof(*work));
+    work = (rescaler_t*)PNDWebPSafeMalloc(2ULL * width, sizeof(*work));
     if (work == NULL) {
-      WebPPictureFree(&tmp);
+      PNDWebPPictureFree(&tmp);
       return WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
     }
     // If present, we need to rescale alpha first (for AlphaMultiplyY).
@@ -256,9 +256,9 @@ int WebPPictureRescale(WebPPicture* picture, int width, int height) {
     }
     AlphaMultiplyY(&tmp, 1);
   } else {
-    work = (rescaler_t*)WebPSafeMalloc(2ULL * width * 4, sizeof(*work));
+    work = (rescaler_t*)PNDWebPSafeMalloc(2ULL * width * 4, sizeof(*work));
     if (work == NULL) {
-      WebPPictureFree(&tmp);
+      PNDWebPPictureFree(&tmp);
       return WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
     }
     // In order to correctly interpolate colors, we need to apply the alpha
@@ -273,7 +273,7 @@ int WebPPictureRescale(WebPPicture* picture, int width, int height) {
     }
     AlphaMultiplyARGB(&tmp, 1);
   }
-  WebPPictureFree(picture);
+  PNDWebPPictureFree(picture);
   WebPSafeFree(work);
   *picture = tmp;
   return 1;
@@ -281,13 +281,13 @@ int WebPPictureRescale(WebPPicture* picture, int width, int height) {
 
 #else  // defined(WEBP_REDUCE_SIZE)
 
-int WebPPictureCopy(const WebPPicture* src, WebPPicture* dst) {
+int PNDWebPPictureCopy(const WebPPicture* src, WebPPicture* dst) {
   (void)src;
   (void)dst;
   return 0;
 }
 
-int WebPPictureCrop(WebPPicture* pic,
+int PNDWebPPictureCrop(WebPPicture* pic,
                     int left, int top, int width, int height) {
   (void)pic;
   (void)left;
@@ -297,7 +297,7 @@ int WebPPictureCrop(WebPPicture* pic,
   return 0;
 }
 
-int WebPPictureRescale(WebPPicture* pic, int width, int height) {
+int PNDWebPPictureRescale(WebPPicture* pic, int width, int height) {
   (void)pic;
   (void)width;
   (void)height;

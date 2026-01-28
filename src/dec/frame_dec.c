@@ -720,12 +720,12 @@ static int AllocateMemory(VP8Decoder* const dec) {
   if (needed > dec->mem_size) {
     WebPSafeFree(dec->mem);
     dec->mem_size = 0;
-    dec->mem = WebPSafeMalloc(needed, sizeof(uint8_t));
+    dec->mem = PNDWebPSafeMalloc(needed, sizeof(uint8_t));
     if (dec->mem == NULL) {
       return VP8SetError(dec, VP8_STATUS_OUT_OF_MEMORY,
                          "no memory during frame initialization.");
     }
-    // down-cast is ok, thanks to WebPSafeMalloc() above.
+    // down-cast is ok, thanks to PNDWebPSafeMalloc() above.
     dec->mem_size = (size_t)needed;
   }
 

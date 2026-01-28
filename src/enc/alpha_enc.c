@@ -59,18 +59,18 @@ static int EncodeLossless(const uint8_t* const data, int width, int height,
   WebPConfig config;
   WebPPicture picture;
 
-  if (!WebPPictureInit(&picture)) return 0;
+  if (!PNDWebPPictureInit(&picture)) return 0;
   picture.width = width;
   picture.height = height;
   picture.use_argb = 1;
   picture.stats = stats;
-  if (!WebPPictureAlloc(&picture)) return 0;
+  if (!PNDWebPPictureAlloc(&picture)) return 0;
 
   // Transfer the alpha values to the green channel.
   WebPDispatchAlphaToGreen(data, width, picture.width, picture.height,
                            picture.argb, picture.argb_stride);
 
-  if (!WebPConfigInit(&config)) return 0;
+  if (!PNDWebPConfigInit(&config)) return 0;
   config.lossless = 1;
   // Enable exact, or it would alter RGB values of transparent alpha, which is
   // normally OK but not here since we are not encoding the input image but  an
@@ -88,7 +88,7 @@ static int EncodeLossless(const uint8_t* const data, int width, int height,
   assert(config.quality >= 0 && config.quality <= 100.f);
 
   ok = VP8LEncodeStream(&config, &picture, bw);
-  WebPPictureFree(&picture);
+  PNDWebPPictureFree(&picture);
   ok = ok && !bw->error;
   if (!ok) {
     VP8LBitWriterWipeOut(bw);
@@ -251,7 +251,7 @@ static int ApplyFiltersAndEncode(const uint8_t* alpha, int width, int height,
   InitFilterTrial(&best);
 
   if (try_map != FILTER_TRY_NONE) {
-    uint8_t* filtered_alpha =  (uint8_t*)WebPSafeMalloc(1ULL, data_size);
+    uint8_t* filtered_alpha =  (uint8_t*)PNDWebPSafeMalloc(1ULL, data_size);
     if (filtered_alpha == NULL) return 0;
 
     for (filter = WEBP_FILTER_NONE; ok && try_map; ++filter, try_map >>= 1) {
@@ -332,7 +332,7 @@ static int EncodeAlpha(VP8Encoder* const enc,
     filter = WEBP_FILTER_NONE;
   }
 
-  quant_alpha = (uint8_t*)WebPSafeMalloc(1ULL, data_size);
+  quant_alpha = (uint8_t*)PNDWebPSafeMalloc(1ULL, data_size);
   if (quant_alpha == NULL) {
     return WebPEncodingSetError(pic, VP8_ENC_ERROR_OUT_OF_MEMORY);
   }

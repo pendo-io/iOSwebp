@@ -121,7 +121,7 @@ static VP8StatusCode AllocateBuffer(WebPDecBuffer* const buffer) {
     }
     total_size = size + 2 * uv_size + a_size;
 
-    output = (uint8_t*)WebPSafeMalloc(total_size, sizeof(*output));
+    output = (uint8_t*)PNDWebPSafeMalloc(total_size, sizeof(*output));
     if (output == NULL) {
       return VP8_STATUS_OUT_OF_MEMORY;
     }

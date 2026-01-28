@@ -33,7 +33,7 @@
 
 //------------------------------------------------------------------------------
 
-int WebPGetDecoderVersion(void) {
+int PNDWebPGetDecoderVersion(void) {
   return (DEC_MAJ_VERSION << 16) | (DEC_MIN_VERSION << 8) | DEC_REV_VERSION;
 }
 
@@ -66,7 +66,7 @@ int VP8InitIoInternal(VP8Io* const io, int version) {
 }
 
 VP8Decoder* VP8New(void) {
-  VP8Decoder* const dec = (VP8Decoder*)WebPSafeCalloc(1ULL, sizeof(*dec));
+  VP8Decoder* const dec = (VP8Decoder*)PNDWebPSafeCalloc(1ULL, sizeof(*dec));
   if (dec != NULL) {
     SetOk(dec);
     WebPGetWorkerInterface()->Init(&dec->worker);

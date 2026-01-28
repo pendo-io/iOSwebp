@@ -150,7 +150,7 @@ int WebPPlaneDistortion(const uint8_t* src, size_t src_stride,
     uint8_t* tmp1;
     uint8_t* tmp2;
     allocated =
-        (uint8_t*)WebPSafeMalloc(2ULL * width * height, sizeof(*allocated));
+        (uint8_t*)PNDWebPSafeMalloc(2ULL * width * height, sizeof(*allocated));
     if (allocated == NULL) return 0;
     tmp1 = allocated;
     tmp2 = tmp1 + (size_t)width * height;
@@ -177,7 +177,7 @@ int WebPPlaneDistortion(const uint8_t* src, size_t src_stride,
 #define BLUE_OFFSET 0   // uint32_t 0x000000ff is 0xff,00,00,00 in memory
 #endif
 
-int WebPPictureDistortion(const WebPPicture* src, const WebPPicture* ref,
+int PNDWebPPictureDistortion(const WebPPicture* src, const WebPPicture* ref,
                           int type, float results[5]) {
   int w, h, c;
   int ok = 0;
@@ -190,15 +190,15 @@ int WebPPictureDistortion(const WebPPicture* src, const WebPPicture* ref,
   }
 
   VP8SSIMDspInit();
-  if (!WebPPictureInit(&p0) || !WebPPictureInit(&p1)) return 0;
+  if (!PNDWebPPictureInit(&p0) || !PNDWebPPictureInit(&p1)) return 0;
   w = src->width;
   h = src->height;
-  if (!WebPPictureView(src, 0, 0, w, h, &p0)) goto Error;
-  if (!WebPPictureView(ref, 0, 0, w, h, &p1)) goto Error;
+  if (!PNDWebPPictureView(src, 0, 0, w, h, &p0)) goto Error;
+  if (!PNDWebPPictureView(ref, 0, 0, w, h, &p1)) goto Error;
 
   // We always measure distortion in ARGB space.
-  if (p0.use_argb == 0 && !WebPPictureYUVAToARGB(&p0)) goto Error;
-  if (p1.use_argb == 0 && !WebPPictureYUVAToARGB(&p1)) goto Error;
+  if (p0.use_argb == 0 && !PNDWebPPictureYUVAToARGB(&p0)) goto Error;
+  if (p1.use_argb == 0 && !PNDWebPPictureYUVAToARGB(&p1)) goto Error;
   for (c = 0; c < 4; ++c) {
     float distortion;
     const size_t stride0 = 4 * (size_t)p0.argb_stride;
@@ -219,8 +219,8 @@ int WebPPictureDistortion(const WebPPicture* src, const WebPPicture* ref,
   ok = 1;
 
  Error:
-  WebPPictureFree(&p0);
-  WebPPictureFree(&p1);
+  PNDWebPPictureFree(&p0);
+  PNDWebPPictureFree(&p1);
   return ok;
 }
 
@@ -245,7 +245,7 @@ int WebPPlaneDistortion(const uint8_t* src, size_t src_stride,
   return 1;
 }
 
-int WebPPictureDistortion(const WebPPicture* src, const WebPPicture* ref,
+int PNDWebPPictureDistortion(const WebPPicture* src, const WebPPicture* ref,
                           int type, float results[5]) {
   int i;
   (void)src;

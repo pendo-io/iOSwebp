@@ -24,7 +24,7 @@
 // WebPConfig
 //------------------------------------------------------------------------------
 
-int WebPConfigInitInternal(WebPConfig* config,
+int PNDWebPConfigInitInternal(WebPConfig* config,
                            WebPPreset preset, float quality, int version) {
   if (WEBP_ABI_IS_INCOMPATIBLE(version, WEBP_ENCODER_ABI_VERSION)) {
     return 0;   // caller/system version mismatch!
@@ -94,10 +94,10 @@ int WebPConfigInitInternal(WebPConfig* config,
     default:
       break;
   }
-  return WebPValidateConfig(config);
+  return PNDWebPValidateConfig(config);
 }
 
-int WebPValidateConfig(const WebPConfig* config) {
+int PNDWebPValidateConfig(const WebPConfig* config) {
   if (config == NULL) return 0;
   if (config->quality < 0 || config->quality > 100) return 0;
   if (config->target_size < 0) return 0;
@@ -145,7 +145,7 @@ static const struct {
   { 4, 50 }, { 4, 75 }, { 4, 90 }, { 5, 90 }, { 6, 100 }
 };
 
-int WebPConfigLosslessPreset(WebPConfig* config, int level) {
+int PNDWebPConfigLosslessPreset(WebPConfig* config, int level) {
   if (config == NULL || level < 0 || level > MAX_LEVEL) return 0;
   config->lossless = 1;
   config->method = kLosslessPresets[level].method;

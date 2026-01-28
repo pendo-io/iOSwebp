@@ -34,11 +34,11 @@ static void MuxInit(WebPMux* const mux) {
   mux->canvas_height = 0;
 }
 
-WebPMux* WebPNewInternal(int version) {
+WebPMux* PNDWebPNewInternal(int version) {
   if (WEBP_ABI_IS_INCOMPATIBLE(version, WEBP_MUX_ABI_VERSION)) {
     return NULL;
   } else {
-    WebPMux* const mux = (WebPMux*)WebPSafeMalloc(1ULL, sizeof(WebPMux));
+    WebPMux* const mux = (WebPMux*)PNDWebPSafeMalloc(1ULL, sizeof(WebPMux));
     if (mux != NULL) MuxInit(mux);
     return mux;
   }
@@ -62,7 +62,7 @@ static void MuxRelease(WebPMux* const mux) {
   ChunkListDelete(&mux->unknown);
 }
 
-void WebPMuxDelete(WebPMux* mux) {
+void PNDWebPMuxDelete(WebPMux* mux) {
   if (mux != NULL) {
     MuxRelease(mux);
     WebPSafeFree(mux);
@@ -115,7 +115,7 @@ static WebPMuxError CreateFrameData(
   assert(info->dispose_method == (info->dispose_method & 1));
   // Note: assertion on upper bounds is done in PutLE24().
 
-  frame_bytes = (uint8_t*)WebPSafeMalloc(1ULL, frame_size);
+  frame_bytes = (uint8_t*)PNDWebPSafeMalloc(1ULL, frame_size);
   if (frame_bytes == NULL) return WEBP_MUX_MEMORY_ERROR;
 
   PutLE24(frame_bytes + 0, info->x_offset / 2);
@@ -147,7 +147,7 @@ static WebPMuxError GetImageData(const WebPData* const bitstream,
   } else {
     // It is webp file data. Extract image data from it.
     const WebPMuxImage* wpi;
-    WebPMux* const mux = WebPMuxCreate(bitstream, 0);
+    WebPMux* const mux = PNDWebPMuxCreate(bitstream, 0);
     if (mux == NULL) return WEBP_MUX_BAD_DATA;
     wpi = mux->images;
     assert(wpi != NULL && wpi->img != NULL);
@@ -155,7 +155,7 @@ static WebPMuxError GetImageData(const WebPData* const bitstream,
     if (wpi->alpha != NULL) {
       *alpha = wpi->alpha->data;
     }
-    WebPMuxDelete(mux);
+    PNDWebPMuxDelete(mux);
   }
   *is_lossless = VP8LCheckSignature(image->bytes, image->size);
   return WEBP_MUX_OK;
@@ -186,7 +186,7 @@ static WebPMuxError MuxDeleteAllNamedData(WebPMux* const mux, uint32_t tag) {
 //------------------------------------------------------------------------------
 // Set API(s).
 
-WebPMuxError WebPMuxSetChunk(WebPMux* mux, const char fourcc[4],
+WebPMuxError PNDWebPMuxSetChunk(WebPMux* mux, const char fourcc[4],
                              const WebPData* chunk_data, int copy_data) {
   uint32_t tag;
   WebPMuxError err;
@@ -241,7 +241,7 @@ static WebPMuxError SetAlphaAndImageChunks(
   return MuxImageFinalize(wpi) ? WEBP_MUX_OK : WEBP_MUX_INVALID_ARGUMENT;
 }
 
-WebPMuxError WebPMuxSetImage(WebPMux* mux, const WebPData* bitstream,
+WebPMuxError PNDWebPMuxSetImage(WebPMux* mux, const WebPData* bitstream,
                              int copy_data) {
   WebPMuxImage wpi;
   WebPMuxError err;
@@ -272,7 +272,7 @@ WebPMuxError WebPMuxSetImage(WebPMux* mux, const WebPData* bitstream,
   return err;
 }
 
-WebPMuxError WebPMuxPushFrame(WebPMux* mux, const WebPMuxFrameInfo* info,
+WebPMuxError PNDWebPMuxPushFrame(WebPMux* mux, const WebPMuxFrameInfo* info,
                               int copy_data) {
   WebPMuxImage wpi;
   WebPMuxError err;
@@ -333,7 +333,7 @@ WebPMuxError WebPMuxPushFrame(WebPMux* mux, const WebPMuxFrameInfo* info,
   return err;
 }
 
-WebPMuxError WebPMuxSetAnimationParams(WebPMux* mux,
+WebPMuxError PNDWebPMuxSetAnimationParams(WebPMux* mux,
                                        const WebPMuxAnimParams* params) {
   WebPMuxError err;
   uint8_t data[ANIM_CHUNK_SIZE];
@@ -354,7 +354,7 @@ WebPMuxError WebPMuxSetAnimationParams(WebPMux* mux,
   return MuxSet(mux, kChunks[IDX_ANIM].tag, &anim, 1);
 }
 
-WebPMuxError WebPMuxSetCanvasSize(WebPMux* mux,
+WebPMuxError PNDWebPMuxSetCanvasSize(WebPMux* mux,
                                   int width, int height) {
   WebPMuxError err;
   if (mux == NULL) {
@@ -383,12 +383,12 @@ WebPMuxError WebPMuxSetCanvasSize(WebPMux* mux,
 //------------------------------------------------------------------------------
 // Delete API(s).
 
-WebPMuxError WebPMuxDeleteChunk(WebPMux* mux, const char fourcc[4]) {
+WebPMuxError PNDWebPMuxDeleteChunk(WebPMux* mux, const char fourcc[4]) {
   if (mux == NULL || fourcc == NULL) return WEBP_MUX_INVALID_ARGUMENT;
   return MuxDeleteAllNamedData(mux, ChunkGetTagFromFourCC(fourcc));
 }
 
-WebPMuxError WebPMuxDeleteFrame(WebPMux* mux, uint32_t nth) {
+WebPMuxError PNDWebPMuxDeleteFrame(WebPMux* mux, uint32_t nth) {
   if (mux == NULL) return WEBP_MUX_INVALID_ARGUMENT;
   return MuxImageDeleteNth(&mux->images, nth);
 }
@@ -560,7 +560,7 @@ static WebPMuxError MuxCleanup(WebPMux* const mux) {
   // If we have an image with a single frame, and its rectangle
   // covers the whole canvas, convert it to a non-animated image
   // (to avoid writing ANMF chunk unnecessarily).
-  WebPMuxError err = WebPMuxNumChunks(mux, kChunks[IDX_ANMF].id, &num_frames);
+  WebPMuxError err = PNDWebPMuxNumChunks(mux, kChunks[IDX_ANMF].id, &num_frames);
   if (err != WEBP_MUX_OK) return err;
   if (num_frames == 1) {
     WebPMuxImage* frame = NULL;
@@ -579,7 +579,7 @@ static WebPMuxError MuxCleanup(WebPMux* const mux) {
     }
   }
   // Remove ANIM chunk if this is a non-animated image.
-  err = WebPMuxNumChunks(mux, kChunks[IDX_ANIM].id, &num_anim_chunks);
+  err = PNDWebPMuxNumChunks(mux, kChunks[IDX_ANIM].id, &num_anim_chunks);
   if (err != WEBP_MUX_OK) return err;
   if (num_anim_chunks >= 1 && num_frames == 0) {
     err = MuxDeleteAllNamedData(mux, kChunks[IDX_ANIM].tag);
@@ -607,7 +607,7 @@ static uint8_t* ImageListEmit(const WebPMuxImage* wpi_list, uint8_t* dst) {
   return dst;
 }
 
-WebPMuxError WebPMuxAssemble(WebPMux* mux, WebPData* assembled_data) {
+WebPMuxError PNDWebPMuxAssemble(WebPMux* mux, WebPData* assembled_data) {
   size_t size = 0;
   uint8_t* data = NULL;
   uint8_t* dst = NULL;
@@ -635,7 +635,7 @@ WebPMuxError WebPMuxAssemble(WebPMux* mux, WebPData* assembled_data) {
        + ChunkListDiskSize(mux->exif) + ChunkListDiskSize(mux->xmp)
        + ChunkListDiskSize(mux->unknown) + RIFF_HEADER_SIZE;
 
-  data = (uint8_t*)WebPSafeMalloc(1ULL, size);
+  data = (uint8_t*)PNDWebPSafeMalloc(1ULL, size);
   if (data == NULL) return WEBP_MUX_MEMORY_ERROR;
 
   // Emit header & chunks.

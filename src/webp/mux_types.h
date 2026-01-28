@@ -56,7 +56,7 @@ typedef enum WebPMuxAnimBlend {
 
 // Data type used to describe 'raw' data, e.g., chunk data
 // (ICC profile, metadata) and WebP compressed image data.
-// 'bytes' memory must be allocated using WebPMalloc() and such.
+// 'bytes' memory must be allocated using PNDWebPMalloc() and such.
 struct WebPData {
   const uint8_t* bytes;
   size_t size;
@@ -69,11 +69,11 @@ static WEBP_INLINE void WebPDataInit(WebPData* webp_data) {
   }
 }
 
-// Clears the contents of the 'webp_data' object by calling WebPFree().
+// Clears the contents of the 'webp_data' object by calling PNDWebPFree().
 // Does not deallocate the object itself.
 static WEBP_INLINE void WebPDataClear(WebPData* webp_data) {
   if (webp_data != NULL) {
-    WebPFree((void*)webp_data->bytes);
+    PNDWebPFree((void*)webp_data->bytes);
     WebPDataInit(webp_data);
   }
 }
@@ -85,7 +85,7 @@ WEBP_NODISCARD static WEBP_INLINE int WebPDataCopy(const WebPData* src,
   if (src == NULL || dst == NULL) return 0;
   WebPDataInit(dst);
   if (src->bytes != NULL && src->size != 0) {
-    dst->bytes = (uint8_t*)WebPMalloc(src->size);
+    dst->bytes = (uint8_t*)PNDWebPMalloc(src->size);
     if (dst->bytes == NULL) return 0;
     memcpy((void*)dst->bytes, src->bytes, src->size);
     dst->size = src->size;

@@ -522,7 +522,7 @@ static int ImportYUVAFromRGBA(const uint8_t* r_ptr,
     int use_dsp = (step == 3);  // use special function in this case
     // temporary storage for accumulated R/G/B values during conversion to U/V
     uint16_t* const tmp_rgb =
-        (uint16_t*)WebPSafeMalloc(4 * uv_width, sizeof(*tmp_rgb));
+        (uint16_t*)PNDWebPSafeMalloc(4 * uv_width, sizeof(*tmp_rgb));
     uint8_t* dst_y = picture->y;
     uint8_t* dst_u = picture->u;
     uint8_t* dst_v = picture->v;
@@ -649,12 +649,12 @@ static int PictureARGBToYUVA(WebPPicture* picture, WebPEncCSP colorspace,
   }
 }
 
-int WebPPictureARGBToYUVADithered(WebPPicture* picture, WebPEncCSP colorspace,
+int PNDWebPPictureARGBToYUVADithered(WebPPicture* picture, WebPEncCSP colorspace,
                                   float dithering) {
   return PictureARGBToYUVA(picture, colorspace, dithering, 0);
 }
 
-int WebPPictureARGBToYUVA(WebPPicture* picture, WebPEncCSP colorspace) {
+int PNDWebPPictureARGBToYUVA(WebPPicture* picture, WebPEncCSP colorspace) {
   return PictureARGBToYUVA(picture, colorspace, 0.f, 0);
 }
 
@@ -662,14 +662,14 @@ int WebPPictureSharpARGBToYUVA(WebPPicture* picture) {
   return PictureARGBToYUVA(picture, WEBP_YUV420, 0.f, 1);
 }
 // for backward compatibility
-int WebPPictureSmartARGBToYUVA(WebPPicture* picture) {
+int PNDWebPPictureSmartARGBToYUVA(WebPPicture* picture) {
   return WebPPictureSharpARGBToYUVA(picture);
 }
 
 //------------------------------------------------------------------------------
 // call for YUVA -> ARGB conversion
 
-int WebPPictureYUVAToARGB(WebPPicture* picture) {
+int PNDWebPPictureYUVAToARGB(WebPPicture* picture) {
   if (picture == NULL) return 0;
   if (picture->y == NULL || picture->u == NULL || picture->v == NULL) {
     return WebPEncodingSetError(picture, VP8_ENC_ERROR_NULL_PARAMETER);
@@ -750,7 +750,7 @@ static int Import(WebPPicture* const picture,
     return ImportYUVAFromRGBA(r_ptr, g_ptr, b_ptr, a_ptr, step, rgb_stride,
                               0.f /* no dithering */, 0, picture);
   }
-  if (!WebPPictureAlloc(picture)) return 0;
+  if (!PNDWebPPictureAlloc(picture)) return 0;
 
   VP8LDspInit();
   WebPInitAlphaProcessing();
@@ -801,14 +801,14 @@ static int Import(WebPPicture* const picture,
 
 #if !defined(WEBP_REDUCE_CSP)
 
-int WebPPictureImportBGR(WebPPicture* picture,
+int PNDWebPPictureImportBGR(WebPPicture* picture,
                          const uint8_t* bgr, int bgr_stride) {
   return (picture != NULL && bgr != NULL)
              ? Import(picture, bgr, bgr_stride, 3, 1, 0)
              : 0;
 }
 
-int WebPPictureImportBGRA(WebPPicture* picture,
+int PNDWebPPictureImportBGRA(WebPPicture* picture,
                           const uint8_t* bgra, int bgra_stride) {
   return (picture != NULL && bgra != NULL)
              ? Import(picture, bgra, bgra_stride, 4, 1, 1)
@@ -816,7 +816,7 @@ int WebPPictureImportBGRA(WebPPicture* picture,
 }
 
 
-int WebPPictureImportBGRX(WebPPicture* picture,
+int PNDWebPPictureImportBGRX(WebPPicture* picture,
                           const uint8_t* bgrx, int bgrx_stride) {
   return (picture != NULL && bgrx != NULL)
              ? Import(picture, bgrx, bgrx_stride, 4, 1, 0)
@@ -825,21 +825,21 @@ int WebPPictureImportBGRX(WebPPicture* picture,
 
 #endif   // WEBP_REDUCE_CSP
 
-int WebPPictureImportRGB(WebPPicture* picture,
+int PNDWebPPictureImportRGB(WebPPicture* picture,
                          const uint8_t* rgb, int rgb_stride) {
   return (picture != NULL && rgb != NULL)
              ? Import(picture, rgb, rgb_stride, 3, 0, 0)
              : 0;
 }
 
-int WebPPictureImportRGBA(WebPPicture* picture,
+int PNDWebPPictureImportRGBA(WebPPicture* picture,
                           const uint8_t* rgba, int rgba_stride) {
   return (picture != NULL && rgba != NULL)
              ? Import(picture, rgba, rgba_stride, 4, 0, 1)
              : 0;
 }
 
-int WebPPictureImportRGBX(WebPPicture* picture,
+int PNDWebPPictureImportRGBX(WebPPicture* picture,
                           const uint8_t* rgbx, int rgbx_stride) {
   return (picture != NULL && rgbx != NULL)
              ? Import(picture, rgbx, rgbx_stride, 4, 0, 0)

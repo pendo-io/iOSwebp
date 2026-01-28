@@ -63,7 +63,7 @@ typedef struct {
   size_t start;        // start location of the data to be decoded
   size_t end;          // end location
   size_t buf_size;     // size of the allocated buffer
-  uint8_t* buf;        // We don't own this buffer in case WebPIUpdate()
+  uint8_t* buf;        // We don't own this buffer in case PNDWebPIUpdate()
 
   size_t part0_size;         // size of partition #0
   const uint8_t* part0_buf;  // buffer to store partition #0
@@ -198,7 +198,7 @@ WEBP_NODISCARD static int AppendToMemBuffer(WebPIDecoder* const idec,
     const uint64_t new_size = (uint64_t)current_size + data_size;
     const uint64_t extra_size = (new_size + CHUNK_SIZE - 1) & ~(CHUNK_SIZE - 1);
     uint8_t* const new_buf =
-        (uint8_t*)WebPSafeMalloc(extra_size, sizeof(*new_buf));
+        (uint8_t*)PNDWebPSafeMalloc(extra_size, sizeof(*new_buf));
     if (new_buf == NULL) return 0;
     if (old_base != NULL) memcpy(new_buf, old_base, current_size);
     WebPSafeFree(mem->buf);
@@ -401,7 +401,7 @@ static VP8StatusCode CopyParts0Data(WebPIDecoder* const idec) {
   }
   if (mem->mode == MEM_MODE_APPEND) {
     // We copy and grab ownership of the partition #0 data.
-    uint8_t* const part0_buf = (uint8_t*)WebPSafeMalloc(1ULL, part_size);
+    uint8_t* const part0_buf = (uint8_t*)PNDWebPSafeMalloc(1ULL, part_size);
     if (part0_buf == NULL) {
       return VP8_STATUS_OUT_OF_MEMORY;
     }
@@ -623,7 +623,7 @@ static VP8StatusCode IDecode(WebPIDecoder* idec) {
 WEBP_NODISCARD static WebPIDecoder* NewDecoder(
     WebPDecBuffer* const output_buffer,
     const WebPBitstreamFeatures* const features) {
-  WebPIDecoder* idec = (WebPIDecoder*)WebPSafeCalloc(1ULL, sizeof(*idec));
+  WebPIDecoder* idec = (WebPIDecoder*)PNDWebPSafeCalloc(1ULL, sizeof(*idec));
   if (idec == NULL) {
     return NULL;
   }
@@ -658,7 +658,7 @@ WEBP_NODISCARD static WebPIDecoder* NewDecoder(
 //------------------------------------------------------------------------------
 // Public functions
 
-WebPIDecoder* WebPINewDecoder(WebPDecBuffer* output_buffer) {
+WebPIDecoder* PNDWebPINewDecoder(WebPDecBuffer* output_buffer) {
   return NewDecoder(output_buffer, NULL);
 }
 
@@ -672,7 +672,7 @@ WebPIDecoder* WebPIDecode(const uint8_t* data, size_t data_size,
 
   // Parse the bitstream's features, if requested:
   if (data != NULL && data_size > 0) {
-    if (WebPGetFeatures(data, data_size, features) != VP8_STATUS_OK) {
+    if (PNDWebPGetFeatures(data, data_size, features) != VP8_STATUS_OK) {
       return NULL;
     }
   }
@@ -690,7 +690,7 @@ WebPIDecoder* WebPIDecode(const uint8_t* data, size_t data_size,
   return idec;
 }
 
-void WebPIDelete(WebPIDecoder* idec) {
+void PNDWebPIDelete(WebPIDecoder* idec) {
   if (idec == NULL) return;
   if (idec->dec != NULL) {
     if (!idec->is_lossless) {
@@ -710,9 +710,9 @@ void WebPIDelete(WebPIDecoder* idec) {
 }
 
 //------------------------------------------------------------------------------
-// Wrapper toward WebPINewDecoder
+// Wrapper toward PNDWebPINewDecoder
 
-WebPIDecoder* WebPINewRGB(WEBP_CSP_MODE csp, uint8_t* output_buffer,
+WebPIDecoder* PNDWebPINewRGB(WEBP_CSP_MODE csp, uint8_t* output_buffer,
                           size_t output_buffer_size, int output_stride) {
   const int is_external_memory = (output_buffer != NULL) ? 1 : 0;
   WebPIDecoder* idec;
@@ -726,7 +726,7 @@ WebPIDecoder* WebPINewRGB(WEBP_CSP_MODE csp, uint8_t* output_buffer,
       return NULL;   // invalid parameter.
     }
   }
-  idec = WebPINewDecoder(NULL);
+  idec = PNDWebPINewDecoder(NULL);
   if (idec == NULL) return NULL;
   idec->output.colorspace = csp;
   idec->output.is_external_memory = is_external_memory;
@@ -736,7 +736,7 @@ WebPIDecoder* WebPINewRGB(WEBP_CSP_MODE csp, uint8_t* output_buffer,
   return idec;
 }
 
-WebPIDecoder* WebPINewYUVA(uint8_t* luma, size_t luma_size, int luma_stride,
+WebPIDecoder* PNDWebPINewYUVA(uint8_t* luma, size_t luma_size, int luma_stride,
                            uint8_t* u, size_t u_size, int u_stride,
                            uint8_t* v, size_t v_size, int v_stride,
                            uint8_t* a, size_t a_size, int a_stride) {
@@ -759,7 +759,7 @@ WebPIDecoder* WebPINewYUVA(uint8_t* luma, size_t luma_size, int luma_stride,
     colorspace = (a == NULL) ? MODE_YUV : MODE_YUVA;
   }
 
-  idec = WebPINewDecoder(NULL);
+  idec = PNDWebPINewDecoder(NULL);
   if (idec == NULL) return NULL;
 
   idec->output.colorspace = colorspace;
@@ -779,10 +779,10 @@ WebPIDecoder* WebPINewYUVA(uint8_t* luma, size_t luma_size, int luma_stride,
   return idec;
 }
 
-WebPIDecoder* WebPINewYUV(uint8_t* luma, size_t luma_size, int luma_stride,
+WebPIDecoder* PNDWebPINewYUV(uint8_t* luma, size_t luma_size, int luma_stride,
                           uint8_t* u, size_t u_size, int u_stride,
                           uint8_t* v, size_t v_size, int v_stride) {
-  return WebPINewYUVA(luma, luma_size, luma_stride,
+  return PNDWebPINewYUVA(luma, luma_size, luma_stride,
                       u, u_size, u_stride,
                       v, v_size, v_stride,
                       NULL, 0, 0);
@@ -801,7 +801,7 @@ static VP8StatusCode IDecCheckStatus(const WebPIDecoder* const idec) {
   return VP8_STATUS_SUSPENDED;
 }
 
-VP8StatusCode WebPIAppend(WebPIDecoder* idec,
+VP8StatusCode PNDWebPIAppend(WebPIDecoder* idec,
                           const uint8_t* data, size_t data_size) {
   VP8StatusCode status;
   if (idec == NULL || data == NULL) {
@@ -822,7 +822,7 @@ VP8StatusCode WebPIAppend(WebPIDecoder* idec,
   return IDecode(idec);
 }
 
-VP8StatusCode WebPIUpdate(WebPIDecoder* idec,
+VP8StatusCode PNDWebPIUpdate(WebPIDecoder* idec,
                           const uint8_t* data, size_t data_size) {
   VP8StatusCode status;
   if (idec == NULL || data == NULL) {
@@ -858,7 +858,7 @@ static const WebPDecBuffer* GetOutputBuffer(const WebPIDecoder* const idec) {
   return idec->params.output;
 }
 
-const WebPDecBuffer* WebPIDecodedArea(const WebPIDecoder* idec,
+const WebPDecBuffer* PNDWebPIDecodedArea(const WebPIDecoder* idec,
                                       int* left, int* top,
                                       int* width, int* height) {
   const WebPDecBuffer* const src = GetOutputBuffer(idec);
@@ -874,7 +874,7 @@ const WebPDecBuffer* WebPIDecodedArea(const WebPIDecoder* idec,
   return src;
 }
 
-WEBP_NODISCARD uint8_t* WebPIDecGetRGB(const WebPIDecoder* idec, int* last_y,
+WEBP_NODISCARD uint8_t* PNDWebPIDecGetRGB(const WebPIDecoder* idec, int* last_y,
                                        int* width, int* height, int* stride) {
   const WebPDecBuffer* const src = GetOutputBuffer(idec);
   if (src == NULL) return NULL;
@@ -890,7 +890,7 @@ WEBP_NODISCARD uint8_t* WebPIDecGetRGB(const WebPIDecoder* idec, int* last_y,
   return src->u.RGBA.rgba;
 }
 
-WEBP_NODISCARD uint8_t* WebPIDecGetYUVA(const WebPIDecoder* idec, int* last_y,
+WEBP_NODISCARD uint8_t* PNDWebPIDecGetYUVA(const WebPIDecoder* idec, int* last_y,
                                         uint8_t** u, uint8_t** v, uint8_t** a,
                                         int* width, int* height, int* stride,
                                         int* uv_stride, int* a_stride) {

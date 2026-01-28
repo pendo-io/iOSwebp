@@ -416,7 +416,7 @@ static int ReadHuffmanCodes(VP8LDecoder* const dec, int xsize, int ysize,
     if (num_htree_groups_max > 1000 || num_htree_groups_max > xsize * ysize) {
       // Create a mapping from the used indices to the minimal set of used
       // values [0, num_htree_groups)
-      mapping = (int*)WebPSafeMalloc(num_htree_groups_max, sizeof(*mapping));
+      mapping = (int*)PNDWebPSafeMalloc(num_htree_groups_max, sizeof(*mapping));
       if (mapping == NULL) {
         VP8LSetError(dec, VP8_STATUS_OUT_OF_MEMORY);
         goto Error;
@@ -476,7 +476,7 @@ int ReadHuffmanCodesHelper(int color_cache_bits, int num_htree_groups,
   }
 
   code_lengths =
-      (int*)WebPSafeCalloc((uint64_t)max_alphabet_size, sizeof(*code_lengths));
+      (int*)PNDWebPSafeCalloc((uint64_t)max_alphabet_size, sizeof(*code_lengths));
   *htree_groups = VP8LHtreeGroupsNew(num_htree_groups);
 
   if (*htree_groups == NULL || code_lengths == NULL ||
@@ -581,7 +581,7 @@ static int AllocateAndInitRescaler(VP8LDecoder* const dec, VP8Io* const io) {
   const uint64_t memory_size = sizeof(*dec->rescaler) +
                                work_size * sizeof(*work) +
                                scaled_data_size * sizeof(*scaled_data);
-  uint8_t* memory = (uint8_t*)WebPSafeMalloc(memory_size, sizeof(*memory));
+  uint8_t* memory = (uint8_t*)PNDWebPSafeMalloc(memory_size, sizeof(*memory));
   if (memory == NULL) {
     return VP8LSetError(dec, VP8_STATUS_OUT_OF_MEMORY);
   }
@@ -1315,7 +1315,7 @@ static int ExpandColorMap(int num_colors, VP8LTransform* const transform) {
   int i;
   const int final_num_colors = 1 << (8 >> transform->bits);
   uint32_t* const new_color_map =
-      (uint32_t*)WebPSafeMalloc((uint64_t)final_num_colors,
+      (uint32_t*)PNDWebPSafeMalloc((uint64_t)final_num_colors,
                                 sizeof(*new_color_map));
   if (new_color_map == NULL) {
     return 0;
@@ -1416,7 +1416,7 @@ static void ClearMetadata(VP8LMetadata* const hdr) {
 // VP8LDecoder
 
 VP8LDecoder* VP8LNew(void) {
-  VP8LDecoder* const dec = (VP8LDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec));
+  VP8LDecoder* const dec = (VP8LDecoder*)PNDWebPSafeCalloc(1ULL, sizeof(*dec));
   if (dec == NULL) return NULL;
   dec->status = VP8_STATUS_OK;
   dec->state = READ_DIM;
@@ -1520,7 +1520,7 @@ static int DecodeImageStream(int xsize, int ysize,
 
   {
     const uint64_t total_size = (uint64_t)transform_xsize * transform_ysize;
-    data = (uint32_t*)WebPSafeMalloc(total_size, sizeof(*data));
+    data = (uint32_t*)PNDWebPSafeMalloc(total_size, sizeof(*data));
     if (data == NULL) {
       ok = VP8LSetError(dec, VP8_STATUS_OUT_OF_MEMORY);
       goto End;
@@ -1564,7 +1564,7 @@ static int AllocateInternalBuffers32b(VP8LDecoder* const dec, int final_width) {
       num_pixels + cache_top_pixels + cache_pixels;
 
   assert(dec->width <= final_width);
-  dec->pixels = (uint32_t*)WebPSafeMalloc(total_num_pixels, sizeof(uint32_t));
+  dec->pixels = (uint32_t*)PNDWebPSafeMalloc(total_num_pixels, sizeof(uint32_t));
   if (dec->pixels == NULL) {
     dec->argb_cache = NULL;    // for soundness
     return VP8LSetError(dec, VP8_STATUS_OUT_OF_MEMORY);
@@ -1576,7 +1576,7 @@ static int AllocateInternalBuffers32b(VP8LDecoder* const dec, int final_width) {
 static int AllocateInternalBuffers8b(VP8LDecoder* const dec) {
   const uint64_t total_num_pixels = (uint64_t)dec->width * dec->height;
   dec->argb_cache = NULL;    // for soundness
-  dec->pixels = (uint32_t*)WebPSafeMalloc(total_num_pixels, sizeof(uint8_t));
+  dec->pixels = (uint32_t*)PNDWebPSafeMalloc(total_num_pixels, sizeof(uint8_t));
   if (dec->pixels == NULL) {
     return VP8LSetError(dec, VP8_STATUS_OUT_OF_MEMORY);
   }

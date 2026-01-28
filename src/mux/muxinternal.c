@@ -42,7 +42,7 @@ const ChunkInfo kChunks[] = {
 
 //------------------------------------------------------------------------------
 
-int WebPGetMuxVersion(void) {
+int PNDWebPGetMuxVersion(void) {
   return (MUX_MAJ_VERSION << 16) | (MUX_MIN_VERSION << 8) | MUX_REV_VERSION;
 }
 
@@ -151,7 +151,7 @@ WebPMuxError ChunkSetHead(WebPChunk* const chunk,
     return WEBP_MUX_NOT_FOUND;
   }
 
-  new_chunk = (WebPChunk*)WebPSafeMalloc(1ULL, sizeof(*new_chunk));
+  new_chunk = (WebPChunk*)PNDWebPSafeMalloc(1ULL, sizeof(*new_chunk));
   if (new_chunk == NULL) return WEBP_MUX_MEMORY_ERROR;
   *new_chunk = *chunk;
   chunk->owner = 0;
@@ -315,7 +315,7 @@ WebPMuxError MuxImagePush(const WebPMuxImage* wpi, WebPMuxImage** wpi_list) {
     wpi_list = &cur_wpi->next;
   }
 
-  new_wpi = (WebPMuxImage*)WebPSafeMalloc(1ULL, sizeof(*new_wpi));
+  new_wpi = (WebPMuxImage*)PNDWebPSafeMalloc(1ULL, sizeof(*new_wpi));
   if (new_wpi == NULL) return WEBP_MUX_MEMORY_ERROR;
   *new_wpi = *wpi;
   new_wpi->next = NULL;
@@ -452,7 +452,7 @@ static WebPMuxError ValidateChunk(const WebPMux* const mux, CHUNK_INDEX idx,
                                   uint32_t vp8x_flags,
                                   int max, int* num) {
   const WebPMuxError err =
-      WebPMuxNumChunks(mux, kChunks[idx].id, num);
+      PNDWebPMuxNumChunks(mux, kChunks[idx].id, num);
   if (err != WEBP_MUX_OK) return err;
   if (max > -1 && *num > max) return WEBP_MUX_INVALID_ARGUMENT;
   if (feature != NO_FLAG && IsNotCompatible(vp8x_flags & feature, *num)) {
@@ -479,7 +479,7 @@ WebPMuxError MuxValidate(const WebPMux* const mux) {
   // Verify mux has at least one image.
   if (mux->images == NULL) return WEBP_MUX_INVALID_ARGUMENT;
 
-  err = WebPMuxGetFeatures(mux, &flags);
+  err = PNDWebPMuxGetFeatures(mux, &flags);
   if (err != WEBP_MUX_OK) return err;
 
   // At most one color profile chunk.
@@ -541,7 +541,7 @@ WebPMuxError MuxValidate(const WebPMux* const mux) {
       if (!(flags & ALPHA_FLAG)) return WEBP_MUX_INVALID_ARGUMENT;
     } else {
       // VP8X chunk is not present, so ALPH chunks should NOT be present either.
-      err = WebPMuxNumChunks(mux, WEBP_CHUNK_ALPHA, &num_alpha);
+      err = PNDWebPMuxNumChunks(mux, WEBP_CHUNK_ALPHA, &num_alpha);
       if (err != WEBP_MUX_OK) return err;
       if (num_alpha > 0) return WEBP_MUX_INVALID_ARGUMENT;
     }

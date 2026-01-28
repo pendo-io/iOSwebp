@@ -26,7 +26,7 @@
 
 HTreeGroup* VP8LHtreeGroupsNew(int num_htree_groups) {
   HTreeGroup* const htree_groups =
-      (HTreeGroup*)WebPSafeMalloc(num_htree_groups, sizeof(*htree_groups));
+      (HTreeGroup*)PNDWebPSafeMalloc(num_htree_groups, sizeof(*htree_groups));
   if (htree_groups == NULL) {
     return NULL;
   }
@@ -233,7 +233,7 @@ int VP8LBuildHuffmanTable(HuffmanTables* const root_table, int root_bits,
     // need a contiguous buffer.
     const int segment_size = root_table->curr_segment->size;
     struct HuffmanTablesSegment* next =
-        (HuffmanTablesSegment*)WebPSafeMalloc(1, sizeof(*next));
+        (HuffmanTablesSegment*)PNDWebPSafeMalloc(1, sizeof(*next));
     if (next == NULL) return 0;
     // Fill the new segment.
     // We need at least 'total_size' but if that value is small, it is better to
@@ -241,7 +241,7 @@ int VP8LBuildHuffmanTable(HuffmanTables* const root_table, int root_bits,
     // therefore chosen (any other arbitrary value could be chosen).
     next->size = total_size > segment_size ? total_size : segment_size;
     next->start =
-        (HuffmanCode*)WebPSafeMalloc(next->size, sizeof(*next->start));
+        (HuffmanCode*)PNDWebPSafeMalloc(next->size, sizeof(*next->start));
     if (next->start == NULL) {
       WebPSafeFree(next);
       return 0;
@@ -259,7 +259,7 @@ int VP8LBuildHuffmanTable(HuffmanTables* const root_table, int root_bits,
                       code_lengths, code_lengths_size, sorted);
   } else {  // rare case. Use heap allocation.
     uint16_t* const sorted =
-        (uint16_t*)WebPSafeMalloc(code_lengths_size, sizeof(*sorted));
+        (uint16_t*)PNDWebPSafeMalloc(code_lengths_size, sizeof(*sorted));
     if (sorted == NULL) return 0;
     BuildHuffmanTable(root_table->curr_segment->curr_table, root_bits,
                       code_lengths, code_lengths_size, sorted);
@@ -274,7 +274,7 @@ int VP8LHuffmanTablesAllocate(int size, HuffmanTables* huffman_tables) {
   huffman_tables->curr_segment = root;
   root->next = NULL;
   // Allocate root.
-  root->start = (HuffmanCode*)WebPSafeMalloc(size, sizeof(*root->start));
+  root->start = (HuffmanCode*)PNDWebPSafeMalloc(size, sizeof(*root->start));
   if (root->start == NULL) return 0;
   root->curr_table = root->start;
   root->size = size;

@@ -628,7 +628,7 @@ static void GetBestPredictorsAndSubSampling(
   const int num_argb = (max_subsampling_index + 1) * kNumPredModes * HISTO_SIZE;
   const int num_accumulated_rgb = (max_subsampling_index + 1) * HISTO_SIZE;
   const int num_predictors = (max_subsampling_index + 1) * kNumPredModes;
-  uint32_t* const raw_data = (uint32_t*)WebPSafeCalloc(
+  uint32_t* const raw_data = (uint32_t*)PNDWebPSafeCalloc(
       num_argb + num_accumulated_rgb + num_predictors, sizeof(uint32_t));
   uint32_t* const all_argb = raw_data;
   uint32_t* const all_accumulated_argb = all_argb + num_argb;
@@ -798,7 +798,7 @@ int VP8LResidualImage(int width, int height, int min_bits, int max_bits,
       num_pixels[bits] = tiles_per_row * tiles_per_col;
       sum_num_pixels += num_pixels[bits];
     }
-    modes_raw = (uint32_t*)WebPSafeMalloc(sum_num_pixels, sizeof(*modes_raw));
+    modes_raw = (uint32_t*)PNDWebPSafeMalloc(sum_num_pixels, sizeof(*modes_raw));
     if (modes_raw == NULL) return 0;
     // Have modes point to the right global memory modes_raw.
     modes[min_bits] = modes_raw;

@@ -33,7 +33,7 @@
 
 //------------------------------------------------------------------------------
 
-int WebPGetEncoderVersion(void) {
+int PNDWebPGetEncoderVersion(void) {
   return (ENC_MAJ_VERSION << 16) | (ENC_MIN_VERSION << 8) | ENC_REV_VERSION;
 }
 
@@ -202,7 +202,7 @@ static VP8Encoder* InitVP8Encoder(const WebPConfig* const config,
          mb_w * mb_h * 384 * sizeof(uint8_t));
   printf("===================================\n");
 #endif
-  mem = (uint8_t*)WebPSafeMalloc(size, sizeof(*mem));
+  mem = (uint8_t*)PNDWebPSafeMalloc(size, sizeof(*mem));
   if (mem == NULL) {
     WebPEncodingSetError(picture, VP8_ENC_ERROR_OUT_OF_MEMORY);
     return NULL;
@@ -331,7 +331,7 @@ int WebPReportProgress(const WebPPicture* const pic,
 }
 //------------------------------------------------------------------------------
 
-int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
+int PNDWebPEncode(const WebPConfig* config, WebPPicture* pic) {
   int ok = 0;
   if (pic == NULL) return 0;
 
@@ -339,7 +339,7 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
   if (config == NULL) {  // bad params
     return WebPEncodingSetError(pic, VP8_ENC_ERROR_NULL_PARAMETER);
   }
-  if (!WebPValidateConfig(config)) {
+  if (!PNDWebPValidateConfig(config)) {
     return WebPEncodingSetError(pic, VP8_ENC_ERROR_INVALID_CONFIGURATION);
   }
   if (!WebPValidatePicture(pic)) return 0;
@@ -367,7 +367,7 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
           // to 0.5 dithering amplitude at high quality (q->100)
           dithering = 1.0f + (0.5f - 1.0f) * x2 * x2;
         }
-        if (!WebPPictureARGBToYUVADithered(pic, WEBP_YUV420, dithering)) {
+        if (!PNDWebPPictureARGBToYUVADithered(pic, WEBP_YUV420, dithering)) {
           return 0;
         }
       }
@@ -399,7 +399,7 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
     ok &= DeleteVP8Encoder(enc);  // must always be called, even if !ok
   } else {
     // Make sure we have ARGB samples.
-    if (pic->argb == NULL && !WebPPictureYUVAToARGB(pic)) {
+    if (pic->argb == NULL && !PNDWebPPictureYUVAToARGB(pic)) {
       return 0;
     }
 

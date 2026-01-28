@@ -31,7 +31,7 @@
 
 // Allocates a new alpha decoder instance.
 WEBP_NODISCARD static ALPHDecoder* ALPHNew(void) {
-  ALPHDecoder* const dec = (ALPHDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec));
+  ALPHDecoder* const dec = (ALPHDecoder*)PNDWebPSafeCalloc(1ULL, sizeof(*dec));
   return dec;
 }
 
@@ -154,7 +154,7 @@ WEBP_NODISCARD static int AllocateAlphaPlane(VP8Decoder* const dec,
   const uint64_t alpha_size = (uint64_t)stride * height;
   assert(dec->alpha_plane_mem == NULL);
   dec->alpha_plane_mem =
-      (uint8_t*)WebPSafeMalloc(alpha_size, sizeof(*dec->alpha_plane));
+      (uint8_t*)PNDWebPSafeMalloc(alpha_size, sizeof(*dec->alpha_plane));
   if (dec->alpha_plane_mem == NULL) {
     return VP8SetError(dec, VP8_STATUS_OUT_OF_MEMORY,
                        "Alpha decoder initialization failed.");

@@ -279,7 +279,7 @@ static int CostManagerInit(CostManager* const manager,
   // different cost, hence MAX_LENGTH but that is impossible with the current
   // implementation that spirals around a pixel.
   assert(manager->cache_intervals_size <= MAX_LENGTH);
-  manager->cache_intervals = (CostCacheInterval*)WebPSafeMalloc(
+  manager->cache_intervals = (CostCacheInterval*)PNDWebPSafeMalloc(
       manager->cache_intervals_size, sizeof(*manager->cache_intervals));
   if (manager->cache_intervals == NULL) {
     CostManagerClear(manager);
@@ -310,7 +310,7 @@ static int CostManagerInit(CostManager* const manager,
   }
 
   manager->costs =
-      (int64_t*)WebPSafeMalloc(pix_count, sizeof(*manager->costs));
+      (int64_t*)PNDWebPSafeMalloc(pix_count, sizeof(*manager->costs));
   if (manager->costs == NULL) {
     CostManagerClear(manager);
     return 0;
@@ -441,7 +441,7 @@ static WEBP_INLINE void InsertInterval(CostManager* const manager,
     interval_new = manager->recycled_intervals;
     manager->recycled_intervals = interval_new->next;
   } else {  // malloc for good
-    interval_new = (CostInterval*)WebPSafeMalloc(1, sizeof(*interval_new));
+    interval_new = (CostInterval*)PNDWebPSafeMalloc(1, sizeof(*interval_new));
     if (interval_new == NULL) {
       // Write down the interval if we cannot create it.
       UpdateCostPerInterval(manager, start, end, position, cost);
@@ -579,10 +579,10 @@ static int BackwardReferencesHashChainDistanceOnly(
       sizeof(*((CostModel*)NULL)->literal) * VP8LHistogramNumCodes(cache_bits);
   const size_t cost_model_size = sizeof(CostModel) + literal_array_size;
   CostModel* const cost_model =
-      (CostModel*)WebPSafeCalloc(1ULL, cost_model_size);
+      (CostModel*)PNDWebPSafeCalloc(1ULL, cost_model_size);
   VP8LColorCache hashers;
   CostManager* cost_manager =
-      (CostManager*)WebPSafeCalloc(1ULL, sizeof(*cost_manager));
+      (CostManager*)PNDWebPSafeCalloc(1ULL, sizeof(*cost_manager));
   int offset_prev = -1, len_prev = -1;
   int64_t offset_cost = -1;
   int first_offset_is_constant = -1;  // initialized with 'impossible' value
@@ -775,7 +775,7 @@ int VP8LBackwardReferencesTraceBackwards(int xsize, int ysize,
   uint16_t* chosen_path = NULL;
   int chosen_path_size = 0;
   uint16_t* dist_array =
-      (uint16_t*)WebPSafeMalloc(dist_array_size, sizeof(*dist_array));
+      (uint16_t*)PNDWebPSafeMalloc(dist_array_size, sizeof(*dist_array));
 
   if (dist_array == NULL) goto Error;
 

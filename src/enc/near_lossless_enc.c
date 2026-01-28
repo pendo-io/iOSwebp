@@ -117,7 +117,7 @@ int VP8ApplyNearLossless(const WebPPicture* const picture, int quality,
   const int ysize = picture->height;
   const int stride = picture->argb_stride;
   uint32_t* const copy_buffer =
-      (uint32_t*)WebPSafeMalloc(xsize * 3, sizeof(*copy_buffer));
+      (uint32_t*)PNDWebPSafeMalloc(xsize * 3, sizeof(*copy_buffer));
   const int limit_bits = VP8LNearLosslessBits(quality);
   assert(argb_dst != NULL);
   assert(limit_bits > 0);

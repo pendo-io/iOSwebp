@@ -28,7 +28,7 @@
 //    https://valgrind.org/docs/manual/ms-manual.html
 // Here is an example command line:
 /*    valgrind --tool=massif --massif-out-file=massif.out \
-               --stacks=yes --alloc-fn=WebPSafeMalloc --alloc-fn=WebPSafeCalloc
+               --stacks=yes --alloc-fn=PNDWebPSafeMalloc --alloc-fn=PNDWebPSafeCalloc
       ms_print massif.out
 */
 // In addition:
@@ -193,7 +193,7 @@ static int CheckSizeArgumentsOverflow(uint64_t nmemb, size_t size) {
   return 1;
 }
 
-void* WebPSafeMalloc(uint64_t nmemb, size_t size) {
+void* PNDWebPSafeMalloc(uint64_t nmemb, size_t size) {
   void* ptr;
   Increment(&num_malloc_calls);
   if (!CheckSizeArgumentsOverflow(nmemb, size)) return NULL;
@@ -203,7 +203,7 @@ void* WebPSafeMalloc(uint64_t nmemb, size_t size) {
   return ptr;
 }
 
-void* WebPSafeCalloc(uint64_t nmemb, size_t size) {
+void* PNDWebPSafeCalloc(uint64_t nmemb, size_t size) {
   void* ptr;
   Increment(&num_calloc_calls);
   if (!CheckSizeArgumentsOverflow(nmemb, size)) return NULL;
@@ -223,11 +223,11 @@ void WebPSafeFree(void* const ptr) {
 
 // Public API functions.
 
-void* WebPMalloc(size_t size) {
-  return WebPSafeMalloc(1, size);
+void* PNDWebPMalloc(size_t size) {
+  return PNDWebPSafeMalloc(1, size);
 }
 
-void WebPFree(void* ptr) {
+void PNDWebPFree(void* ptr) {
   WebPSafeFree(ptr);
 }
 
@@ -254,7 +254,7 @@ void WebPCopyPixels(const WebPPicture* const src, WebPPicture* const dst) {
 
 //------------------------------------------------------------------------------
 
-int WebPGetColorPalette(const WebPPicture* const pic, uint32_t* const palette) {
+int PNDWebPGetColorPalette(const WebPPicture* const pic, uint32_t* const palette) {
   return GetColorPalette(pic, palette);
 }
 
